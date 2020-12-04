@@ -78,9 +78,9 @@ def draw_example():
     image = get_selected_image()
     image = preprocess_image(image)
     fig, ax = setup_plot(image)
-    if OPTION_STATE['draw_predictions']:
+    if OPTION_STATE['draw_predictions'] and is_mode_view_examples():
         ax = draw_predictions(ax)
-    if OPTION_STATE['draw_ground_truth']:
+    if OPTION_STATE['draw_ground_truth'] and is_mode_view_examples():
         ax = draw_ground_truth(ax)
     
     # Add Resize here
