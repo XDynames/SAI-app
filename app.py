@@ -40,11 +40,15 @@ def maybe_draw_example():
         draw_example()
 
 def do_draw():
-    return not is_instruction_mode() and is_file_uploaded()
-def is_instruction_mode():
+    draw_check_1 = not is_mode_instructions() and is_file_uploaded()
+    draw_check_2 = is_mode_view_examples()
+    return  draw_check_1 or draw_check_2
+def is_mode_instructions():
     return OPTION_STATE['mode'] == 'Instructions'
 def is_file_uploaded():
     return OPTION_STATE['uploaded_file'] is not None
+def is_mode_view_examples():
+    return OPTION_STATE['mode'] == 'View Example Images'
 
 def draw_example():
     image = get_selected_image()
@@ -59,7 +63,6 @@ def draw_example():
 def download_image(url):
     with urllib.request.urlopen(url) as response:
         image = read_byte_stream(response)
-    st.write(image)
     return image
 
 def read_byte_stream(bytestream):
