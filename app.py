@@ -43,10 +43,13 @@ def do_draw():
     draw_check_1 = not is_mode_instructions() and is_file_uploaded()
     draw_check_2 = is_mode_view_examples()
     return  draw_check_1 or draw_check_2
+
 def is_mode_instructions():
     return OPTION_STATE['mode'] == 'Instructions'
+
 def is_file_uploaded():
     return OPTION_STATE['uploaded_file'] is not None
+    
 def is_mode_view_examples():
     return OPTION_STATE['mode'] == 'View Example Images'
 
