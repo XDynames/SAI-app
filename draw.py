@@ -1,10 +1,12 @@
 import matplotlib as mpl
+import streamlit as st
 
 def masks(mpl_axis, annotations, gt):
     pass
 
 def keypoints(mpl_axis, annotations, gt):
-    pass
+    for annotation in annotations:
+        draw_keypoints(mpl_axis, annotation, gt)
 
 def bboxes(mpl_axis, annotations, gt):
     key = 'category_id' if gt else 'class'
@@ -32,28 +34,80 @@ def draw_bbox(mpl_axis, annotation, colour, gt):
         draw_box(mpl_axis, (x1,y1), width, height, colour)
         draw_label(mpl_axis, text_position, text, alignment)
 
+def draw_keypoints(mpl_axis, annotation, gt):
+    draw_length_keypoints(mpl_axis, annotation, gt)
+    draw_width_keypoints(mpl_axis, annotation, gt)
+
+def draw_width_keypoints(mpl_axis, annotation, gt):
+    key = 'CD_keypoinys' if gt else 'CD_keypoints'
+    keypoints_width = annotation[key]
+    # Dummy value for closed stoma -> no width
+    if keypoints_width[0] == -1: return
+    keypoints_x = extract_x_keypoints(keypoints_width)
+    keypoints_y = extract_y_keypoints(keypoints_width)
+    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt)
+
+def draw_length_keypoints(mpl_axis, annotation, gt):
+    key = 'keypoints' if gt else 'AB_keypoints'
+    keypoints_length = annotation[key]
+    keypoints_x = extract_x_keypoints(keypoints_length)
+    keypoints_y = extract_y_keypoints(keypoints_length)
+    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt)
+
+def extract_x_keypoints(keypoints):
+    return [keypoints[0], keypoints[3]]
+
+def extract_y_keypoints(keypoints):
+    return [keypoints[1], keypoints[4]]
+
+def draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt):
+    colour = 'red' if gt else 'blue'
+    draw_lines(mpl_axis,[keypoints_x, keypoints_y], colour)
+    draw_points(mpl_axis, zip(keypoints_x, keypoints_y), colour)
+
+def draw_points(mpl_axis, keypoints, colour):
+    for keypoint in keypoints:
+        mpl_axis.add_patch(
+            mpl.patches.Circle(
+                keypoint,
+                radius=2,
+                fill=True,
+                color=colour,
+            )
+        )
+
+def draw_lines(mpl_axis, keypoints, colour):
+    mpl_axis.add_line(
+        mpl.lines.Line2D(
+            keypoints[0],
+            keypoints[1],
+            linewidth=0.5,
+            color=colour,
+        )
+    )
+
 def draw_box(mpl_axis, position, width, height, edgecolour):
     mpl_axis.add_patch(
-            mpl.patches.Rectangle(
-                position,
-                width,
-                height,
-                fill=False,
-                edgecolor=edgecolour,
-                linewidth=1,
-                alpha=0.5,
-            )
+        mpl.patches.Rectangle(
+            position,
+            width,
+            height,
+            fill=False,
+            edgecolor=edgecolour,
+            linewidth=1,
+            alpha=0.5,
+        )
     )
 
 def draw_label(mpl_axis, position, text, horizontal_alignment):
     mpl_axis.text(
-            position[0],
-            position[1],
-            text,
-            size=2.5,
-            family="sans-serif",
-            bbox={"facecolor": "black", "alpha": 0.8, "pad": 0.7, "edgecolor": "none"},
-            verticalalignment="top",
-            color='white',
-            horizontalalignment=horizontal_alignment
-        )
+        position[0],
+        position[1],
+        text,
+        size=2.5,
+        family="sans-serif",
+        bbox={"facecolor": "black", "alpha": 0.8, "pad": 0.7, "edgecolor": "none"},
+        verticalalignment="top",
+        color='white',
+        horizontalalignment=horizontal_alignment
+    )

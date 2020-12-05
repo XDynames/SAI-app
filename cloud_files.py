@@ -110,7 +110,7 @@ IMAGE_DICTS = {
             'visualised': 
                 'https://cloudstor.aarnet.edu.au/plus/s/MHBrhiJEvZunskv',
             'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/1AWa8Ty3dHsvn9Y',
+                'https://cloudstor.aarnet.edu.au/plus/s/PkFJeNjPM59qRcI',
         },
         '5Mar_2mMGABA_10uMABA_Captured 6.png':{
             'original': 
