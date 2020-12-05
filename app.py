@@ -39,8 +39,9 @@ def download_annotations():
 def draw_predictions(mpl_axis):
     annotations = download_annotations()
     predictions = extract_predictions(annotations)
-    mpl_axis = draw.bboxes(mpl_axis, predictions, False)
-    return mpl_axis
+    draw.bboxes(mpl_axis, predictions, False)
+    draw.masks(mpl_axis, predictions, False)
+    draw.keypoints(mpl_axis, predictions, False)
 
 def extract_predictions(annotations):
     detections = annotations['detections']
@@ -53,8 +54,9 @@ def extract_ground_truth(annotations):
 def draw_ground_truth(mpl_axis):
     annotations = download_annotations()
     ground_truth = extract_ground_truth(annotations)
-    mpl_axis = draw.bboxes(mpl_axis, ground_truth, True)
-    return mpl_axis
+    draw.bboxes(mpl_axis, ground_truth, True)
+    draw.masks(mpl_axis, ground_truth, True)
+    draw.keypoints(mpl_axis, ground_truth, True)
 
 def maybe_draw_example():
     if do_draw():
@@ -79,9 +81,9 @@ def draw_example():
     image = preprocess_image(image)
     fig, ax = setup_plot(image)
     if OPTION_STATE['draw_predictions'] and is_mode_view_examples():
-        ax = draw_predictions(ax)
+        draw_predictions(ax)
     if OPTION_STATE['draw_ground_truth'] and is_mode_view_examples():
-        ax = draw_ground_truth(ax)
+        draw_ground_truth(ax)
     
     # Add Resize here
     st.write(fig)
