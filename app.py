@@ -39,7 +39,16 @@ def download_annotations():
 def draw_predictions(mpl_axis):
     annotations = download_annotations()
     predictions = extract_predictions(annotations)
+    predictions = filter_low_confidence_predictions(predictions)
     draw_labels_on_image(mpl_axis, predictions, False)
+
+def filter_low_confidence_predictions(predictions):
+    threshold = Option_State['confidence_threshold']
+    predictions = [
+        prediction for prediction in predictions 
+        if prediction['confidence'] >= threshold
+    ]
+    return predictions
 
 def extract_predictions(annotations):
     detections = annotations['detections']

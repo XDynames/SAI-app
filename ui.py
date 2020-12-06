@@ -46,7 +46,9 @@ def predefined_example_selections():
 def drawing_options():
     draw_ground_truth_checkbox()
     draw_predictions_checkbox()
-    if is_drawing_enabled():
+    if draw_predictions_enabled():
+        confience_sliderbar()
+    if drawing_enabled():
         st.sidebar.write('Types of Measurments:')
         draw_bboxes_checkbox()
         draw_masks_checkbox()
@@ -68,10 +70,12 @@ def draw_keypoints_checkbox():
         value=True,
     )
 
-def is_drawing_enabled():
-    drawing_predictions = Option_State['draw_predictions']
+def drawing_enabled():
     drawing_ground_truth = Option_State['draw_ground_truth']
-    return drawing_predictions or drawing_ground_truth 
+    return draw_predictions_enabled() or drawing_ground_truth 
+
+def draw_predictions_enabled():
+    return Option_State['draw_predictions']
 
 def file_upload():
     Option_State['uploaded_file'] = st.file_uploader(
@@ -83,6 +87,15 @@ def mode_selection():
     Option_State['mode'] = st.sidebar.selectbox(
         'Select Application Mode:',
         [ 'Instructions', 'View Example Images', 'Upload An Image' ]
+    )
+
+def confience_sliderbar():
+    Option_State['confidence_threshold'] = st.sidebar.slider(
+        'Confidence Threshold',
+        min_value=0.0,
+        max_value=1.0,
+        value=0.5,
+        step=0.05
     )
 
 def display_instructions():
