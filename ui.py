@@ -13,8 +13,11 @@ OPTION_STATE = {
     'plant_type' : '',
     'image_url_dicts' : {},
     'image_name' : '',
-    'draw_predictions' : '',
-    'draw_ground_truth' : '',
+    'draw_predictions' : False,
+    'draw_ground_truth' : False,
+    'draw_bboxes' : True,
+    'draw_masks' : True,
+    'draw_keypoints' : True,
     'uploaded_file' : None,
 }
 
@@ -38,8 +41,37 @@ def setup_sidebar():
 def predefined_example_selections():
     plant_type_selection()
     image_selection()
+    drawing_options()
+
+def drawing_options():
     draw_ground_truth_checkbox()
     draw_predictions_checkbox()
+    if is_drawing_enabled():
+        st.sidebar.write('Types of Measurments:')
+        draw_bboxes_checkbox()
+        draw_masks_checkbox()
+        draw_keypoints_checkbox()
+
+def draw_bboxes_checkbox():
+    OPTION_STATE['draw_bboxes'] = st.sidebar.checkbox(
+        'Show Bounding Boxes',
+        value=True,
+    )
+def draw_masks_checkbox():
+    OPTION_STATE['draw_masks'] = st.sidebar.checkbox(
+        'Show Pore Segmentations',
+        value=True,
+    )
+def draw_keypoints_checkbox():
+    OPTION_STATE['draw_keypoints'] = st.sidebar.checkbox(
+        'Show Lengths and Widths',
+        value=True,
+    )
+
+def is_drawing_enabled():
+    drawing_predictions = OPTION_STATE['draw_predictions']
+    drawing_ground_truth = OPTION_STATE['draw_ground_truth']
+    return drawing_predictions or drawing_ground_truth 
 
 def file_upload():
     OPTION_STATE['uploaded_file'] = st.file_uploader(

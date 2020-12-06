@@ -39,9 +39,7 @@ def download_annotations():
 def draw_predictions(mpl_axis):
     annotations = download_annotations()
     predictions = extract_predictions(annotations)
-    draw.bboxes(mpl_axis, predictions, False)
-    draw.masks(mpl_axis, predictions, False)
-    draw.keypoints(mpl_axis, predictions, False)
+    draw_labels_on_image(mpl_axis, predictions, False)
 
 def extract_predictions(annotations):
     detections = annotations['detections']
@@ -54,9 +52,15 @@ def extract_ground_truth(annotations):
 def draw_ground_truth(mpl_axis):
     annotations = download_annotations()
     ground_truth = extract_ground_truth(annotations)
-    draw.bboxes(mpl_axis, ground_truth, True)
-    draw.masks(mpl_axis, ground_truth, True)
-    draw.keypoints(mpl_axis, ground_truth, True)
+    draw_labels_on_image(mpl_axis, ground_truth, True)
+
+def draw_labels_on_image(mpl_axis, annotations, gt):
+    if OPTION_STATE['draw_bboxes']:
+        draw.bboxes(mpl_axis, annotations, gt)
+    if OPTION_STATE['draw_masks']:
+        draw.masks(mpl_axis, annotations, gt)
+    if OPTION_STATE['draw_keypoints']:
+        draw.keypoints(mpl_axis, annotations, gt)
 
 def maybe_draw_example():
     if do_draw():

@@ -2,7 +2,9 @@ import matplotlib as mpl
 import streamlit as st
 
 def masks(mpl_axis, annotations, gt):
-    pass
+    colour = 'red' if gt else 'blue' 
+    for annotation in annotations:
+        draw_masks(mpl_axis, annotation, colour)
 
 def keypoints(mpl_axis, annotations, gt):
     for annotation in annotations:
@@ -33,6 +35,25 @@ def draw_bbox(mpl_axis, annotation, colour, gt):
 
         draw_box(mpl_axis, (x1,y1), width, height, colour)
         draw_label(mpl_axis, text_position, text, alignment)
+
+def draw_masks(mpl_axis, annotation, colour):
+    segment = annotation['segmentation'][0]
+    if not segment: return
+    segment = format_polygon_coordinates(segment)
+    mpl_axis.add_patch(
+        mpl.patches.Polygon(
+            segment,
+            fill=True,
+            alpha=0.5,
+            facecolor=colour,
+            edgecolor=colour,
+            linewidth=0.5,
+        )
+    )
+
+def format_polygon_coordinates(polygon):
+    indices = range(0, len(polygon), 2)
+    return [ [polygon[i], polygon[i+1]] for i in indices ]
 
 def draw_keypoints(mpl_axis, annotation, gt):
     draw_length_keypoints(mpl_axis, annotation, gt)
