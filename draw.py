@@ -1,5 +1,4 @@
 import matplotlib as mpl
-import streamlit as st
 
 def masks(mpl_axis, annotations, gt):
     colour = 'red' if gt else 'blue' 

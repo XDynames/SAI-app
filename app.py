@@ -8,29 +8,29 @@ import matplotlib.pyplot as plt
 
 import ui
 import draw
-from ui import OPTION_STATE
+from ui import Option_State
 
 def main():
     ui.setup()
     maybe_draw_example()
 
 def get_selected_image():
-    if OPTION_STATE['mode'] == 'View Example Images':
+    if Option_State['mode'] == 'View Example Images':
         image = download_example()
-    if OPTION_STATE['mode'] == 'Upload An Image':
+    if Option_State['mode'] == 'Upload An Image':
         image = get_uploaded_image()
     return image
 
 def get_uploaded_image():
-    return read_byte_stream(OPTION_STATE['uploaded_file'])
+    return read_byte_stream(Option_State['uploaded_file'])
 
 def download_example():
     urls = get_current_image_urls()
     return download_image(urls['original'] + '/download')
 
 def get_current_image_urls():
-    image_name = OPTION_STATE['image_name']
-    return  OPTION_STATE['image_url_dicts'][image_name]
+    image_name = Option_State['image_name']
+    return  Option_State['image_url_dicts'][image_name]
 
 def download_annotations():
     urls = get_current_image_urls()
@@ -55,11 +55,11 @@ def draw_ground_truth(mpl_axis):
     draw_labels_on_image(mpl_axis, ground_truth, True)
 
 def draw_labels_on_image(mpl_axis, annotations, gt):
-    if OPTION_STATE['draw_bboxes']:
+    if Option_State['draw_bboxes']:
         draw.bboxes(mpl_axis, annotations, gt)
-    if OPTION_STATE['draw_masks']:
+    if Option_State['draw_masks']:
         draw.masks(mpl_axis, annotations, gt)
-    if OPTION_STATE['draw_keypoints']:
+    if Option_State['draw_keypoints']:
         draw.keypoints(mpl_axis, annotations, gt)
 
 def maybe_draw_example():
@@ -72,21 +72,21 @@ def do_draw():
     return  draw_check_1 or draw_check_2
 
 def is_mode_instructions():
-    return OPTION_STATE['mode'] == 'Instructions'
+    return Option_State['mode'] == 'Instructions'
 
 def is_file_uploaded():
-    return OPTION_STATE['uploaded_file'] is not None
+    return Option_State['uploaded_file'] is not None
 
 def is_mode_view_examples():
-    return OPTION_STATE['mode'] == 'View Example Images'
+    return Option_State['mode'] == 'View Example Images'
 
 def draw_example():
     image = get_selected_image()
     image = preprocess_image(image)
     fig, ax = setup_plot(image)
-    if OPTION_STATE['draw_predictions'] and is_mode_view_examples():
+    if Option_State['draw_predictions'] and is_mode_view_examples():
         draw_predictions(ax)
-    if OPTION_STATE['draw_ground_truth'] and is_mode_view_examples():
+    if Option_State['draw_ground_truth'] and is_mode_view_examples():
         draw_ground_truth(ax)
     
     # Add Resize here
