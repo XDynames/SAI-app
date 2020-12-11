@@ -1,128 +1,287 @@
 IMAGE_DICTS = {
     'Barley' : {
-        '10Dec_D2L_1mMGABA_1hLight_Captured 19.png':{
-            'original': 
+        '10Dec 19':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/GKYrltfzbIFRAd0',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/nv0sW2ZMvMjvMqW',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/H6k1oZtyJDZOOjS',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/k1IIwo9XsF7pxyb',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/DLZFhDjV0KFLWn6'
         },
-        '10Dec_D2L_1mMGABA_1hLight_Captured 24.png':{
-            'original': 
+        '10Dec 24':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/xsIqHKknjKLONL9',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/LmK7zFRQD7WLvif',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/IHaxXGzcOOwuWpW',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/gbsmf5UdwqHZpXn',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/RreGojhTnCHXRW8'
         },
-        '10Dec_D2L_1mMGABA_1hLight_Captured 29.png':{
-            'original': 
+        '10Dec 29':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/TdNPt65R0b94N5X',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/w1rXFYSjY1f1fE1',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/wX02GBt7eenL4Qk',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/CqQhXaU1SWeiSP4',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/A4u39ifUR8jnwoK'
         },
-        '10Dec_D2L_1mMGABA_1hLight_Captured 30.png':{
-            'original': 
+        '10Dec 30':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/FxotDaDeeYimlaM',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/YrFxh4IL5WYlEkb',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/deIXvyQYyuLxfzA',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/8Ff2WTK15PJF80Q',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/d2475BLnJ1wYq9s'
         },
-        '18Mar_2mMGABA_15uMABA_Captured 28.png':{
-            'original': 
+        '18Mar 28':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/A68njFxi3wdpnOC',
-            'visualised':
-                'https://cloudstor.aarnet.edu.au/plus/s/xTEAKr1kW8oS2fk',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/cwqXvJeH2YAULzU',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/0ijPkHHBtbCCqHw',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/JcL47cfBJQrQ79Q'
         },
-        '18Mar_2mMGABA_15uMABA_Captured 31.png':{
-            'original': 
+        '18Mar 31':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/VhBTnlA923NFdlS',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/QL0pTwN7NbiFVrS',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/CNhETIAF9pOrhdS',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/qdbzvQoHOn07NuM',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/k6Mz1Vm4i8XolNa'
         },
-        '18Mar_2mMGABA_15uMABA_Captured 34.png':{
-            'original': 
+        '18Mar 34':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/yQjGO8oCb9q8LPY',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/EJ6FVwcdVdhaHla',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/Gngi0lItMUVieGC',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/yC5T76FGfOC48wQ',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/P7uxtX9WrhkjzF4'
         },
-        '18Mar_2mMGABA_15uMABA_Captured 37.png':{
-            'original': 
+        '18Mar 37':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/BDYwzQXbzTKqx9F',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/3cHWdqs7blYIpOu',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/7lZbT49evnt3TQj',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/YoSGgHveWnTPLel',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/An6q34m85ZiVoGW'
         },
-        '25Feb_2mMGABA_10uMABA_Captured 27.png':{
-            'original': 
+        '25Feb 27':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/DNHXGmsxB9UeWG3',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/Y5zdIbF7QMN7dLf',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/63IhwRLK7jXEYsE',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/mwPUv0oanRq67DV',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/0Wnxuc0W2ryyBcP'
         },
-        '25Feb_2mMGABA_10uMABA_Captured 29.png':{
-            'original': 
+        '25Feb 29':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/sZCOqbu8772OOgy',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/6cxe8YGvY0Su7sf',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/SHNapqqyeZYcX9H',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/hAMfYLPHhCSNkYB',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/ue3qjMJsGHb76YM'
         },
-        '25Feb_2mMGABA_10uMABA_Captured 32.png':{
-            'original': 
+        '25Feb 32':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/fwygto1Upd33aLk',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/6hP8C22sgpBlzU8',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/yaef9k0xc9sRD0a',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/AveEgXsDEuc1bpk',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/JJTAe2xI75PPvrl'
         },
-        '25Feb_2mMGABA_10uMABA_Captured 37.png':{
-            'original': 
+        '25Feb 37':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/P4w4oNaN210SX41',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/M4SjEwzypEfhicA',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/1AWa8Ty3dHsvn9Y',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/XpFeN4dxuQU8eIK',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/jhvHuYmzVSP3kLA'
         },
-        '5Mar_2mMGABA_10uMABA_Captured 10.png':{
-            'original': 
+        '5Mar 10':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/pF7lI2fxBd7FlJb',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/cDLzwQnr8M0NLdh',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/Qhp7ADRdOnCMikj',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/hQ535U2TmyN2iNN',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/yTbPzD0EkvbE4FR'
         },
-        '5Mar_2mMGABA_10uMABA_Captured 3.png':{
-            'original': 
+        '5Mar 3':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/ae3q8P2VaZOUxEq',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/MHBrhiJEvZunskv',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/PkFJeNjPM59qRcI',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/mHhKDwcDhZcqQqZ',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/i3PcfBKWdbZaKTa'
         },
-        '5Mar_2mMGABA_10uMABA_Captured 6.png':{
-            'original': 
+        '5Mar 6':{
+            'image': 
                 'https://cloudstor.aarnet.edu.au/plus/s/InaQTbbjD9rOd8l',
-            'visualised': 
-                'https://cloudstor.aarnet.edu.au/plus/s/Iz946lahWhMTKhq',
-            'annotations':
-                'https://cloudstor.aarnet.edu.au/plus/s/ei8Q9NB57PypGkf',
+            'predictions':
+                'https://cloudstor.aarnet.edu.au/plus/s/RJy0vcoUseumSwv',
+            'ground_truth':
+                'https://cloudstor.aarnet.edu.au/plus/s/qWMAFgcwWVpHwzD'
         },
     },
     'Arabidopsis' : {
-
+        'B-t-1-1':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/AMYCHSdmOgUFbKr',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'B-t-1-5':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/RJt9ny7k2PTNrgc',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'B-t-2-3':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/nTO1fFwwLDCeIUG',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-W-1-3':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/2ZC9oxmyGr6s483',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-W-2-2':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/MShWGRrOMIWyL03',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-1-1':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/cJKWUvteqEVa6gp',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-1-5':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/xu9pFhsIqmA9IDW',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-2-2':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/6kt5YZ9b3fpWA3u',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-t-1-2':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/iSvwR8DyvYDgX7k',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-t-2-1':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/T6vnVT726i1K0oq',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'B-t-1-3':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/rBccrjuu6k4iOP7',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'B-t-2-1':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/zYnsdy3g3jsUxwW',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-W-1-1':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/7fb54HQb4UTkkuk',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-W-1-6':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/mPGpY9PulN5Ji2N',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-W-2-4':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/CBkNoIhqDhiGW1p',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-1-3':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/zi1YZp7vWskX7fB',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-1-7':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/0lnJTwBBnoe3rIJ',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-g-2-4':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/NAsFbPPuWQmCw8w',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-t-1-4':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/2b6ldmBm5YKZ2Aq',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
+        'C-t-2-4':{
+            'image': 
+                'https://cloudstor.aarnet.edu.au/plus/s/bjKK9bg9N5gHV5J',
+            'predictions':
+                '',
+            'ground_truth':
+                ''
+        },
     }
 }
 
@@ -133,6 +292,6 @@ EXTERNAL_DEPENDANCIES = {
         'https://cloudstor.aarnet.edu.au/plus/s/qJztazXzBeOLO7E',
     'arabidopsis_weights' :
         '',
-    'arabidopsis' :
+    'arabidopsis_config' :
         '',
 }

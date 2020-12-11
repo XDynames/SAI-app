@@ -10,17 +10,16 @@ def keypoints(mpl_axis, annotations, gt):
         draw_keypoints(mpl_axis, annotation, gt)
 
 def bboxes(mpl_axis, annotations, gt):
-    key = 'category_id' if gt else 'class'
     for annotation in annotations:
-        edgecolour = 'green' if annotation[key] else 'orange'
+        edgecolour = 'green' if annotation['category_id'] else 'orange'
         draw_bbox(mpl_axis, annotation, edgecolour, gt)
 
 def draw_bbox(mpl_axis, annotation, colour, gt):
+        label = 'Open' if annotation['category_id'] else 'Closed'
         if gt:
             x1, y1, width, height = annotation['bbox']
             text_position = (x1+width,y1) 
             alignment = 'right'
-            label = 'Open' if annotation['category_id'] else 'Closed'
             text = f'{label}'
         else:
             x1, y1, x2, y2 = annotation['bbox']
@@ -28,7 +27,6 @@ def draw_bbox(mpl_axis, annotation, colour, gt):
             height = y2 - y1
             text_position = (x1,y1)
             alignment = 'left'
-            label = 'Open' if annotation['class'] else 'Closed'
             confidence = round(annotation['confidence'] * 100, 1)
             text = f'{label} {confidence}%'
 

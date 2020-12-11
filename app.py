@@ -26,7 +26,7 @@ def get_uploaded_image():
 
 def download_example():
     urls = get_current_image_urls()
-    return download_image(urls['original'] + '/download')
+    return download_image(urls['image'] + '/download')
 
 def get_current_image_urls():
     image_name = Option_State['image_name']
@@ -36,9 +36,17 @@ def download_annotations():
     urls = get_current_image_urls()
     return download_json(urls['annotations'] + '/download')
 
+def download_predictions():
+    urls = get_current_image_urls()
+    return download_json(urls['predictions'] + '/download')
+
+def download_ground_truth():
+    urls = get_current_image_urls()
+    return download_json(urls['ground_truth'] + '/download')
+
 def draw_predictions(mpl_axis):
-    annotations = download_annotations()
-    predictions = extract_predictions(annotations)
+    predictions = download_predictions()['detections']
+    # predictions = extract_predictions(annotations)
     predictions = filter_low_confidence_predictions(predictions)
     draw_labels_on_image(mpl_axis, predictions, False)
 
