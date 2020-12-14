@@ -57,8 +57,7 @@ def draw_keypoints(mpl_axis, annotation, gt):
     draw_width_keypoints(mpl_axis, annotation, gt)
 
 def draw_width_keypoints(mpl_axis, annotation, gt):
-    key = 'CD_keypoinys' if gt else 'CD_keypoints'
-    keypoints_width = annotation[key]
+    keypoints_width = annotation['CD_keypoints']
     # Dummy value for closed stoma -> no width
     if keypoints_width[0] == -1: return
     keypoints_x = extract_x_keypoints(keypoints_width)

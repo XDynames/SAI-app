@@ -67,8 +67,8 @@ def extract_ground_truth(annotations):
     return [ detection['gt'] for detection in detections ]
 
 def draw_ground_truth(mpl_axis):
-    annotations = download_annotations()
-    ground_truth = extract_ground_truth(annotations)
+    ground_truth = download_ground_truth()['detections']
+    #ground_truth = extract_ground_truth(annotations)
     draw_labels_on_image(mpl_axis, ground_truth, True)
 
 def draw_labels_on_image(mpl_axis, annotations, gt):
