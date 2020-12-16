@@ -19,6 +19,7 @@ Option_State = {
     'draw_masks' : True,
     'draw_keypoints' : True,
     'uploaded_file' : None,
+    'confidence_threshold': 0.5,
 }
 
 def setup():

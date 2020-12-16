@@ -10,9 +10,21 @@ import ui
 import draw
 from ui import Option_State
 
+# mm2
+IMAGE_AREA = {
+    'Barley' : 0.3229496,
+    'Arabidopsis' : 0.04794822,
+}
+# pixels / micron
+CAMERA_CALIBRATION = {
+    'Barley' : 4.2736,
+    'Arabidopsis' : 10.25131,
+}
+
 def main():
     ui.setup()
     maybe_draw_example()
+    maybe_display_summary_statistics()
 
 def get_selected_image():
     if Option_State['mode'] == 'View Example Images':
@@ -45,10 +57,15 @@ def download_ground_truth():
     return download_json(urls['ground_truth'] + '/download')
 
 def draw_predictions(mpl_axis):
-    predictions = download_predictions()['detections']
-    # predictions = extract_predictions(annotations)
-    predictions = filter_low_confidence_predictions(predictions)
+    predictions = get_and_filter_predictions()
     draw_labels_on_image(mpl_axis, predictions, False)
+
+def get_and_filter_predictions():
+    predictions = download_predictions()['detections']
+    return filter_low_confidence_predictions(predictions)
+
+def get_ground_truth():
+    return download_ground_truth()['detections']
 
 def filter_low_confidence_predictions(predictions):
     threshold = Option_State['confidence_threshold']
@@ -58,17 +75,8 @@ def filter_low_confidence_predictions(predictions):
     ]
     return predictions
 
-def extract_predictions(annotations):
-    detections = annotations['detections']
-    return [ detection['pred'] for detection in detections ]
-
-def extract_ground_truth(annotations):
-    detections = annotations['detections']
-    return [ detection['gt'] for detection in detections ]
-
 def draw_ground_truth(mpl_axis):
-    ground_truth = download_ground_truth()['detections']
-    #ground_truth = extract_ground_truth(annotations)
+    ground_truth = get_ground_truth()
     draw_labels_on_image(mpl_axis, ground_truth, True)
 
 def draw_labels_on_image(mpl_axis, annotations, gt):
@@ -96,6 +104,74 @@ def is_file_uploaded():
 
 def is_mode_view_examples():
     return Option_State['mode'] == 'View Example Images'
+
+def is_mode_upload_an_example():
+    return Option_State['mode'] == 'Upload An Image'
+
+def maybe_display_summary_statistics():
+    if not is_mode_instructions():
+        display_summary_statistics()
+
+def display_summary_statistics():
+    column_names, column_human, column_predicted = st.beta_columns(3)
+    with column_names:
+        display_summary_names()
+    if not is_mode_upload_an_example():
+        with column_human:
+            display_ground_truth_summary_statistics()
+    with column_predicted:
+        display_prediction_summary_statistics()
+
+def display_summary_names():
+    st.write("Properties")
+    st.write("Pore Count:")
+    st.write("Pore Density:")
+    st.write("Average Pore Length:")
+    st.write("Average Pore Width:")
+    st.write("Average Pore Area:")
+
+def display_ground_truth_summary_statistics():
+    ground_truth = get_ground_truth()
+    st.write("Human Annotations")
+    calculate_and_display_summary_statistics(ground_truth)
+
+def display_prediction_summary_statistics():
+    predictions = get_and_filter_predictions()
+    st.write("Model Estimates")
+    calculate_and_display_summary_statistics(predictions)
+
+def calculate_and_display_summary_statistics(annotations):
+    display_pore_count(annotations)
+    display_pore_density(annotations)
+    display_average_length(annotations)
+    display_average_width(annotations)
+    display_average_area(annotations)
+
+def display_pore_count(annotations):
+    st.write(f"{len(annotations)}")
+
+def display_pore_density(annotations):
+    area = IMAGE_AREA[Option_State['plant_type']]
+    density = round(len(annotations) / area, 2)
+    st.write(f"{density} pores/mm\u00B2")
+
+def display_average_length(annotations):
+    average_length = average_key(annotations, 'length')
+    st.write(f"{average_length} \u03BCm")
+
+def display_average_width(annotations):
+    average_width = average_key(annotations, 'width')
+    st.write(f"{average_width} \u03BCm")
+
+def display_average_area(annotations):
+    average_area = average_key(annotations, 'area')
+    st.write(f"{average_area} \u03BCm\u00B2")
+
+def average_key(annotations, key):
+    values = [ annotation[key] for annotation in annotations]
+    average = sum(values) / len(values)
+    average /= CAMERA_CALIBRATION[Option_State['plant_type']]
+    return round(average, 2)
 
 def draw_example():
     image = get_selected_image()
