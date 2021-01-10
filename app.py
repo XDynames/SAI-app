@@ -119,8 +119,11 @@ def display_summary_statistics():
     if not is_mode_upload_an_example():
         with column_human:
             display_ground_truth_summary_statistics()
-    with column_predicted:
-        display_prediction_summary_statistics()
+        with column_predicted:
+            display_prediction_summary_statistics()
+    else:
+        # Temporay while live inference is not added
+        display_summary_names()
 
 def display_summary_names():
     st.write("Properties")

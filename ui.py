@@ -8,6 +8,11 @@ PLANT_OPTIONS = [
     'Arabidopsis',
 ]
 
+OPENCV_FILE_SUPPORT = [
+    'png', 'bmp', 'jpeg', 'jpg',
+    'jpe', 'jp2', 'tiff', 'tif'
+]
+
 Option_State = {
     'mode' : '',
     'plant_type' : '',
@@ -81,7 +86,7 @@ def draw_predictions_enabled():
 def file_upload():
     Option_State['uploaded_file'] = st.file_uploader(
         "Upload Files",
-        type=['png']
+        type=OPENCV_FILE_SUPPORT
     )
 
 def mode_selection():
