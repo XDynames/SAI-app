@@ -124,8 +124,8 @@ def display_summary_statistics():
 
 def display_summary_names():
     st.write("Properties")
-    st.write("Pore Count:")
-    st.write("Pore Density:")
+    st.write("Stomata Count:")
+    st.write("Stomatal Density:")
     st.write("Average Pore Length:")
     st.write("Average Pore Width:")
     st.write("Average Pore Area:")
@@ -153,7 +153,7 @@ def display_pore_count(annotations):
 def display_pore_density(annotations):
     area = IMAGE_AREA[Option_State['plant_type']]
     density = round(len(annotations) / area, 2)
-    st.write(f"{density} pores/mm\u00B2")
+    st.write(f"{density} stomata/mm\u00B2")
 
 def display_average_length(annotations):
     average_length = average_key(annotations, 'length')
