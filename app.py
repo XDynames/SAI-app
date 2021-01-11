@@ -184,8 +184,8 @@ def draw_example():
         draw_predictions(ax)
     if Option_State['draw_ground_truth'] and is_mode_view_examples():
         draw_ground_truth(ax)
-    
     # Add Resize here
+    draw.legend(ax)
     st.write(fig)
 
 def setup_plot(image):
