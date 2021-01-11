@@ -10,17 +10,6 @@ import ui
 import draw
 from ui import Option_State
 
-# mm2
-IMAGE_AREA = {
-    'Barley' : 0.3229496,
-    'Arabidopsis' : 0.04794822,
-}
-# pixels / micron
-CAMERA_CALIBRATION = {
-    'Barley' : 4.2736,
-    'Arabidopsis' : 10.25131,
-}
-
 def main():
     ui.setup()
     maybe_draw_example()
@@ -154,7 +143,7 @@ def display_pore_count(annotations):
     st.write(f"{len(annotations)}")
 
 def display_pore_density(annotations):
-    area = IMAGE_AREA[Option_State['plant_type']]
+    area = Option_State['image_area']
     density = round(len(annotations) / area, 2)
     st.write(f"{density} stomata/mm\u00B2")
 
@@ -173,7 +162,7 @@ def display_average_area(annotations):
 def average_key(annotations, key):
     values = [ annotation[key] for annotation in annotations]
     average = sum(values) / len(values)
-    average /= CAMERA_CALIBRATION[Option_State['plant_type']]
+    average /= Option_State['camera_calibration']
     return round(average, 2)
 
 def draw_example():

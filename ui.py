@@ -8,6 +8,16 @@ PLANT_OPTIONS = [
     'Arabidopsis',
 ]
 
+IMAGE_AREA = {
+    'Barley' : 0.3229496,
+    'Arabidopsis' : 0.04794822,
+}
+# pixels / micron
+CAMERA_CALIBRATION = {
+    'Barley' : 4.2736,
+    'Arabidopsis' : 10.25131,
+}
+
 OPENCV_FILE_SUPPORT = [
     'png', 'bmp', 'jpeg', 'jpg',
     'jpe', 'jp2', 'tiff', 'tif'
@@ -24,7 +34,9 @@ Option_State = {
     'draw_masks' : True,
     'draw_keypoints' : True,
     'uploaded_file' : None,
-    'confidence_threshold': 0.5,
+    'confidence_threshold' : 0.5,
+    'image_area' : 0.01,
+    'camera_calibration' : 1.0,
 }
 
 def setup():
@@ -41,12 +53,14 @@ def setup_sidebar():
         display_instructions()
     if Option_State['mode'] == 'Upload An Image':
         file_upload()
+        draw_calibration_textboxes()
     if Option_State['mode'] == 'View Example Images':
         predefined_example_selections()
 
 def predefined_example_selections():
     plant_type_selection()
     image_selection()
+    show_calibration_information()
     drawing_options()
 
 def drawing_options():
@@ -75,6 +89,43 @@ def draw_keypoints_checkbox():
         'Show Lengths and Widths',
         value=True,
     )
+
+def show_calibration_information():
+    print_image_area_textbox()
+    print_camera_calibration()
+    
+def draw_calibration_textboxes():
+    draw_image_area_textbox()
+    draw_camera_calibration_textbox()
+
+def draw_camera_calibration_textbox():
+    Option_State['camera_calibration'] = st.sidebar.number_input(
+        "Camera Calibration (px/\u03BCm):",
+        min_value=0.0,
+        value=CAMERA_CALIBRATION[Option_State['plant_type']],
+        step=0.5,
+        format='%.3f'
+    )
+
+def draw_image_area_textbox():
+    Option_State['image_area'] = st.sidebar.number_input(
+        "Image Area (mm\u00B2):",
+        min_value=0.0,
+        value=IMAGE_AREA[Option_State['plant_type']],
+        step=0.01,
+        format='%.3f'
+    )
+
+def print_camera_calibration():
+    camera_calibration = CAMERA_CALIBRATION[Option_State['plant_type']]
+    Option_State['camera_calibration'] = camera_calibration
+    message = f"Camera Calibration: {camera_calibration:.4} px/\u03BCm"
+    st.sidebar.write(message)
+
+def print_image_area_textbox():
+    image_area = IMAGE_AREA[Option_State['plant_type']]
+    Option_State['image_area'] = image_area
+    st.sidebar.write(f"Image Area: {image_area:.3} mm\u00B2")
 
 def drawing_enabled():
     drawing_ground_truth = Option_State['draw_ground_truth']
