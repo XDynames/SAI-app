@@ -110,9 +110,6 @@ def display_summary_statistics():
             display_ground_truth_summary_statistics()
         with column_predicted:
             display_prediction_summary_statistics()
-    else:
-        # Temporay while live inference is not added
-        display_summary_names()
 
 def display_summary_names():
     st.write("Properties")
@@ -143,27 +140,42 @@ def display_pore_count(annotations):
     st.write(f"{len(annotations)}")
 
 def display_pore_density(annotations):
-    area = Option_State['image_area']
-    density = round(len(annotations) / area, 2)
-    st.write(f"{density} stomata/mm\u00B2")
+    if is_valid_image_area():
+        area = Option_State['image_area']
+        density = round(len(annotations) / area, 2)
+        st.write(f"{density} stomata/mm\u00B2")
+    else:
+        st.write("N/A")
 
 def display_average_length(annotations):
     average_length = average_key(annotations, 'length')
-    st.write(f"{average_length} \u03BCm")
+    print_summary_metric(average_length, '\u03BCm', 'px')
 
 def display_average_width(annotations):
     average_width = average_key(annotations, 'width')
-    st.write(f"{average_width} \u03BCm")
+    print_summary_metric(average_width, '\u03BCm', 'px')
 
 def display_average_area(annotations):
     average_area = average_key(annotations, 'area')
-    st.write(f"{average_area} \u03BCm\u00B2")
+    print_summary_metric(average_area, "\u03BCm\u00B2", "px\u00B2")
+
+def print_summary_metric(value, unit, default_unit):
+    if is_valid_calibration():
+        st.write(f"{value} {unit}")
+    else:
+        st.write(f"{value} {default_unit}")
 
 def average_key(annotations, key):
     values = [ annotation[key] for annotation in annotations]
     average = sum(values) / len(values)
-    average /= Option_State['camera_calibration']
+    if is_valid_calibration():
+        average /= Option_State['camera_calibration']
     return round(average, 2)
+
+def is_valid_calibration():
+    return Option_State['camera_calibration'] > 0.0001
+def is_valid_image_area():
+    return Option_State['image_area'] > 0.0001
 
 def draw_example():
     image = get_selected_image()

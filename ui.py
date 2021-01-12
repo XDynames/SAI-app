@@ -35,8 +35,8 @@ Option_State = {
     'draw_keypoints' : True,
     'uploaded_file' : None,
     'confidence_threshold' : 0.5,
-    'image_area' : 0.01,
-    'camera_calibration' : 1.0,
+    'image_area' : None,
+    'camera_calibration' : None,
 }
 
 def setup():
@@ -102,7 +102,7 @@ def draw_camera_calibration_textbox():
     Option_State['camera_calibration'] = st.sidebar.number_input(
         "Camera Calibration (px/\u03BCm):",
         min_value=0.0,
-        value=CAMERA_CALIBRATION[Option_State['plant_type']],
+        value=0.0,
         step=0.5,
         format='%.3f'
     )
@@ -111,7 +111,7 @@ def draw_image_area_textbox():
     Option_State['image_area'] = st.sidebar.number_input(
         "Image Area (mm\u00B2):",
         min_value=0.0,
-        value=IMAGE_AREA[Option_State['plant_type']],
+        value=0.0,
         step=0.01,
         format='%.3f'
     )
