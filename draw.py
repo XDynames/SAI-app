@@ -14,6 +14,23 @@ def bboxes(mpl_axis, annotations, gt):
         edgecolour = 'green' if annotation['category_id'] else 'orange'
         draw_bbox(mpl_axis, annotation, edgecolour, gt)
 
+def legend(mpl_axis):
+    mpl_axis.set(ylim=[mpl_axis.get_ylim()[0]+150,0])
+    proxy_handles = [
+        mpl.patches.Patch(color='red'),
+        mpl.patches.Patch(color='blue'),
+        mpl.patches.Patch(color='green'),
+        mpl.patches.Patch(color='orange')
+    ]
+    legend = mpl_axis.legend(
+        proxy_handles,
+        ['Human', 'Model', 'Open', 'Closed'],
+        loc='lower center',
+        frameon=False,
+        fontsize=8,
+        ncol=4
+    )
+
 def draw_bbox(mpl_axis, annotation, colour, gt):
         label = 'Open' if annotation['category_id'] else 'Closed'
         if gt:
@@ -82,12 +99,12 @@ def draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt):
     draw_lines(mpl_axis,[keypoints_x, keypoints_y], colour)
     draw_points(mpl_axis, zip(keypoints_x, keypoints_y), colour)
 
-def draw_points(mpl_axis, keypoints, colour):
+def draw_points(mpl_axis, keypoints, colour, radius=2):
     for keypoint in keypoints:
         mpl_axis.add_patch(
             mpl.patches.Circle(
                 keypoint,
-                radius=2,
+                radius=radius,
                 fill=True,
                 color=colour,
             )
@@ -127,4 +144,17 @@ def draw_label(mpl_axis, position, text, horizontal_alignment):
         verticalalignment="top",
         color='white',
         horizontalalignment=horizontal_alignment
+    )
+
+def draw_legend_text(mpl_axis, position, text):
+    mpl_axis.text(
+        position[0],
+        position[1],
+        text,
+        size=10,
+        family="sans-serif",
+        bbox={"facecolor": "white", "alpha": 1, "pad": 0.7, "edgecolor": "none"},
+        verticalalignment="top",
+        color='black',
+        horizontalalignment='left'
     )

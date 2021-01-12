@@ -3,28 +3,20 @@ import urllib
 
 import cv2
 import numpy as np
+import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
 import ui
 import draw
 from ui import Option_State
-
-# mm2
-IMAGE_AREA = {
-    'Barley' : 0.3229496,
-    'Arabidopsis' : 0.04794822,
-}
-# pixels / micron
-CAMERA_CALIBRATION = {
-    'Barley' : 4.2736,
-    'Arabidopsis' : 10.25131,
-}
+from cloud_files import IMAGE_DICTS
 
 def main():
     ui.setup()
     maybe_draw_example()
     maybe_display_summary_statistics()
+    maybe_show_example_output()
 
 def get_selected_image():
     if Option_State['mode'] == 'View Example Images':
@@ -108,8 +100,11 @@ def is_mode_view_examples():
 def is_mode_upload_an_example():
     return Option_State['mode'] == 'Upload An Image'
 
+def is_mode_example_output():
+    return Option_State['mode'] == 'View Example Output'
+
 def maybe_display_summary_statistics():
-    if not is_mode_instructions():
+    if is_mode_upload_an_example() or is_mode_view_examples():
         display_summary_statistics()
 
 def display_summary_statistics():
@@ -119,13 +114,13 @@ def display_summary_statistics():
     if not is_mode_upload_an_example():
         with column_human:
             display_ground_truth_summary_statistics()
-    with column_predicted:
-        display_prediction_summary_statistics()
+        with column_predicted:
+            display_prediction_summary_statistics()
 
 def display_summary_names():
     st.write("Properties")
-    st.write("Pore Count:")
-    st.write("Pore Density:")
+    st.write("Stomata Count:")
+    st.write("Stomatal Density:")
     st.write("Average Pore Length:")
     st.write("Average Pore Width:")
     st.write("Average Pore Area:")
@@ -151,27 +146,51 @@ def display_pore_count(annotations):
     st.write(f"{len(annotations)}")
 
 def display_pore_density(annotations):
-    area = IMAGE_AREA[Option_State['plant_type']]
-    density = round(len(annotations) / area, 2)
-    st.write(f"{density} pores/mm\u00B2")
+    if is_valid_image_area():
+        area = Option_State['image_area']
+        density = round(len(annotations) / area, 2)
+        st.write(f"{density} stomata/mm\u00B2")
+    else:
+        st.write("N/A")
 
 def display_average_length(annotations):
     average_length = average_key(annotations, 'length')
-    st.write(f"{average_length} \u03BCm")
+    print_summary_metric(average_length, '\u03BCm', 'px')
 
 def display_average_width(annotations):
     average_width = average_key(annotations, 'width')
-    st.write(f"{average_width} \u03BCm")
+    print_summary_metric(average_width, '\u03BCm', 'px')
 
 def display_average_area(annotations):
     average_area = average_key(annotations, 'area')
-    st.write(f"{average_area} \u03BCm\u00B2")
+    print_summary_metric(average_area, "\u03BCm\u00B2", "px\u00B2")
+
+def print_summary_metric(value, unit, default_unit):
+    if is_valid_calibration():
+        st.write(f"{value} {unit}")
+    else:
+        st.write(f"{value} {default_unit}")
 
 def average_key(annotations, key):
     values = [ annotation[key] for annotation in annotations]
     average = sum(values) / len(values)
-    average /= CAMERA_CALIBRATION[Option_State['plant_type']]
+    if is_valid_calibration():
+        average /= Option_State['camera_calibration']
     return round(average, 2)
+
+def is_valid_calibration():
+    return Option_State['camera_calibration'] > 0.0001
+
+def is_valid_image_area():
+    return Option_State['image_area'] > 0.0001
+
+def maybe_show_example_output():
+    if is_mode_example_output():
+        example_url = IMAGE_DICTS['Barley']['10Dec 19']['predictions'] + '/download'
+        predictions = download_json(example_url)
+        df = pd.DataFrame(predictions['detections'])
+        df = df.drop(columns=['bbox', 'AB_keypoints', 'CD_keypoints', 'segmentation'])
+        st.table(df.head(21))
 
 def draw_example():
     image = get_selected_image()
@@ -181,8 +200,8 @@ def draw_example():
         draw_predictions(ax)
     if Option_State['draw_ground_truth'] and is_mode_view_examples():
         draw_ground_truth(ax)
-    
     # Add Resize here
+    draw.legend(ax)
     st.write(fig)
 
 def setup_plot(image):

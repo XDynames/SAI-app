@@ -2,10 +2,31 @@ import streamlit as st
 
 from cloud_files import IMAGE_DICTS, EXTERNAL_DEPENDANCIES
 
-
 PLANT_OPTIONS = [
     'Barley',
     'Arabidopsis',
+]
+
+IMAGE_AREA = {
+    'Barley' : 0.3229496,
+    'Arabidopsis' : 0.04794822,
+}
+# pixels / micron
+CAMERA_CALIBRATION = {
+    'Barley' : 4.2736,
+    'Arabidopsis' : 10.25131,
+}
+
+OPENCV_FILE_SUPPORT = [
+    'png', 'bmp', 'jpeg', 'jpg',
+    'jpe', 'jp2', 'tiff', 'tif'
+]
+
+ENABLED_MODES = [
+    'Instructions',
+    'View Example Images',
+    'View Example Output',
+    'Upload An Image'
 ]
 
 Option_State = {
@@ -19,7 +40,9 @@ Option_State = {
     'draw_masks' : True,
     'draw_keypoints' : True,
     'uploaded_file' : None,
-    'confidence_threshold': 0.5,
+    'confidence_threshold' : 0.5,
+    'image_area' : None,
+    'camera_calibration' : None,
 }
 
 def setup():
@@ -32,17 +55,25 @@ def setup_heading():
 
 def setup_sidebar():
     mode_selection()
-    if Option_State['mode'] == 'Instructions':
-        display_instructions()
-    if Option_State['mode'] == 'Upload An Image':
-        file_upload()
-    if Option_State['mode'] == 'View Example Images':
-        predefined_example_selections()
+    MODE_METHODS[Option_State['mode']]()
 
-def predefined_example_selections():
+def display_example_selection():
     plant_type_selection()
     image_selection()
+    show_calibration_information()
     drawing_options()
+
+def display_upload_image():
+    file_upload()
+    draw_calibration_textboxes()
+
+def display_example_output():
+    st.write("Example of .csv file output for model predictions on images:")
+
+def display_instructions():
+    with open('instructions.md') as file:
+        markdown_string = file.read()
+    st.markdown(markdown_string)
 
 def drawing_options():
     draw_ground_truth_checkbox()
@@ -71,6 +102,43 @@ def draw_keypoints_checkbox():
         value=True,
     )
 
+def show_calibration_information():
+    print_image_area_textbox()
+    print_camera_calibration()
+    
+def draw_calibration_textboxes():
+    draw_image_area_textbox()
+    draw_camera_calibration_textbox()
+
+def draw_camera_calibration_textbox():
+    Option_State['camera_calibration'] = st.sidebar.number_input(
+        "Camera Calibration (px/\u03BCm):",
+        min_value=0.0,
+        value=0.0,
+        step=0.5,
+        format='%.3f'
+    )
+
+def draw_image_area_textbox():
+    Option_State['image_area'] = st.sidebar.number_input(
+        "Image Area (mm\u00B2):",
+        min_value=0.0,
+        value=0.0,
+        step=0.01,
+        format='%.3f'
+    )
+
+def print_camera_calibration():
+    camera_calibration = CAMERA_CALIBRATION[Option_State['plant_type']]
+    Option_State['camera_calibration'] = camera_calibration
+    message = f"Camera Calibration: {camera_calibration:.4} px/\u03BCm"
+    st.sidebar.write(message)
+
+def print_image_area_textbox():
+    image_area = IMAGE_AREA[Option_State['plant_type']]
+    Option_State['image_area'] = image_area
+    st.sidebar.write(f"Image Area: {image_area:.3} mm\u00B2")
+
 def drawing_enabled():
     drawing_ground_truth = Option_State['draw_ground_truth']
     return draw_predictions_enabled() or drawing_ground_truth 
@@ -81,13 +149,13 @@ def draw_predictions_enabled():
 def file_upload():
     Option_State['uploaded_file'] = st.file_uploader(
         "Upload Files",
-        type=['png']
+        type=OPENCV_FILE_SUPPORT
     )
 
 def mode_selection():
     Option_State['mode'] = st.sidebar.selectbox(
         'Select Application Mode:',
-        [ 'Instructions', 'View Example Images', 'Upload An Image' ]
+        ENABLED_MODES
     )
 
 def confience_sliderbar():
@@ -98,9 +166,6 @@ def confience_sliderbar():
         value=0.5,
         step=0.05
     )
-
-def display_instructions():
-    st.write('Put application instructions here')
 
 def plant_type_selection():
     Option_State['plant_type'] = st.sidebar.selectbox(
@@ -125,3 +190,10 @@ def draw_predictions_checkbox():
     Option_State['draw_predictions'] = st.sidebar.checkbox(
         'Show Model Predictions'
     )
+
+MODE_METHODS = {
+    'Instructions' : display_instructions,
+    'Upload An Image' : display_upload_image,
+    'View Example Images' : display_example_selection,
+    'View Example Output' : display_example_output,
+}
