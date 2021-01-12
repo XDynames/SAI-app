@@ -71,7 +71,9 @@ def display_example_output():
     st.write("Example of .csv file output for model predictions on images:")
 
 def display_instructions():
-    st.write('Put application instructions here')
+    with open('instructions.md') as file:
+        markdown_string = file.read()
+    st.markdown(markdown_string)
 
 def drawing_options():
     draw_ground_truth_checkbox()
