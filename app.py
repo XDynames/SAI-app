@@ -3,17 +3,20 @@ import urllib
 
 import cv2
 import numpy as np
+import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
 import ui
 import draw
 from ui import Option_State
+from cloud_files import IMAGE_DICTS
 
 def main():
     ui.setup()
     maybe_draw_example()
     maybe_display_summary_statistics()
+    maybe_show_example_output()
 
 def get_selected_image():
     if Option_State['mode'] == 'View Example Images':
@@ -97,8 +100,11 @@ def is_mode_view_examples():
 def is_mode_upload_an_example():
     return Option_State['mode'] == 'Upload An Image'
 
+def is_mode_example_output():
+    return Option_State['mode'] == 'View Example Output'
+
 def maybe_display_summary_statistics():
-    if not is_mode_instructions():
+    if is_mode_upload_an_example() or is_mode_view_examples():
         display_summary_statistics()
 
 def display_summary_statistics():
@@ -174,8 +180,17 @@ def average_key(annotations, key):
 
 def is_valid_calibration():
     return Option_State['camera_calibration'] > 0.0001
+
 def is_valid_image_area():
     return Option_State['image_area'] > 0.0001
+
+def maybe_show_example_output():
+    if is_mode_example_output():
+        example_url = IMAGE_DICTS['Barley']['10Dec 19']['predictions'] + '/download'
+        predictions = download_json(example_url)
+        df = pd.DataFrame(predictions['detections'])
+        df = df.drop(columns=['bbox', 'AB_keypoints', 'CD_keypoints', 'segmentation'])
+        st.table(df.head(21))
 
 def draw_example():
     image = get_selected_image()

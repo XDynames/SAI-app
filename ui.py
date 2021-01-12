@@ -2,7 +2,6 @@ import streamlit as st
 
 from cloud_files import IMAGE_DICTS, EXTERNAL_DEPENDANCIES
 
-
 PLANT_OPTIONS = [
     'Barley',
     'Arabidopsis',
@@ -21,6 +20,13 @@ CAMERA_CALIBRATION = {
 OPENCV_FILE_SUPPORT = [
     'png', 'bmp', 'jpeg', 'jpg',
     'jpe', 'jp2', 'tiff', 'tif'
+]
+
+ENABLED_MODES = [
+    'Instructions',
+    'View Example Images',
+    'View Example Output',
+    'Upload An Image'
 ]
 
 Option_State = {
@@ -49,19 +55,23 @@ def setup_heading():
 
 def setup_sidebar():
     mode_selection()
-    if Option_State['mode'] == 'Instructions':
-        display_instructions()
-    if Option_State['mode'] == 'Upload An Image':
-        file_upload()
-        draw_calibration_textboxes()
-    if Option_State['mode'] == 'View Example Images':
-        predefined_example_selections()
+    MODE_METHODS[Option_State['mode']]()
 
-def predefined_example_selections():
+def display_example_selection():
     plant_type_selection()
     image_selection()
     show_calibration_information()
     drawing_options()
+
+def display_upload_image():
+    file_upload()
+    draw_calibration_textboxes()
+
+def display_example_output():
+    st.write("Example of .csv file output for model predictions on images:")
+
+def display_instructions():
+    st.write('Put application instructions here')
 
 def drawing_options():
     draw_ground_truth_checkbox()
@@ -143,7 +153,7 @@ def file_upload():
 def mode_selection():
     Option_State['mode'] = st.sidebar.selectbox(
         'Select Application Mode:',
-        [ 'Instructions', 'View Example Images', 'Upload An Image' ]
+        ENABLED_MODES
     )
 
 def confience_sliderbar():
@@ -154,9 +164,6 @@ def confience_sliderbar():
         value=0.5,
         step=0.05
     )
-
-def display_instructions():
-    st.write('Put application instructions here')
 
 def plant_type_selection():
     Option_State['plant_type'] = st.sidebar.selectbox(
@@ -181,3 +188,10 @@ def draw_predictions_checkbox():
     Option_State['draw_predictions'] = st.sidebar.checkbox(
         'Show Model Predictions'
     )
+
+MODE_METHODS = {
+    'Instructions' : display_instructions,
+    'Upload An Image' : display_upload_image,
+    'View Example Images' : display_example_selection,
+    'View Example Output' : display_example_output,
+}
