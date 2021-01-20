@@ -50,7 +50,7 @@ def setup():
     setup_sidebar()
 
 def setup_heading():
-    st.title('Automatic Stoma Measurement')
+    st.title('StomAI - SAI')
     st.subheader('Accelerating plant physiology research')
 
 def setup_sidebar():
