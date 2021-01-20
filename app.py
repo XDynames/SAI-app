@@ -84,9 +84,12 @@ def maybe_draw_example():
         draw_example()
 
 def do_draw():
-    draw_check_1 = not is_mode_instructions() and is_file_uploaded()
+    draw_check_1 = is_drawing_mode() and is_file_uploaded()
     draw_check_2 = is_mode_view_examples()
     return  draw_check_1 or draw_check_2
+
+def is_drawing_mode():
+    return not (is_mode_instructions() or is_mode_example_output())
 
 def is_mode_instructions():
     return Option_State['mode'] == 'Instructions'
