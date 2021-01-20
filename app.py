@@ -204,7 +204,10 @@ def draw_example():
     if Option_State['draw_ground_truth'] and is_mode_view_examples():
         draw_ground_truth(ax)
     # Add Resize here
-    draw.legend(ax)
+    if is_mode_upload_an_example():
+        draw.legend(ax, False)
+    else:
+        draw.legend(ax)
     st.write(fig)
 
 def setup_plot(image):

@@ -14,17 +14,22 @@ def bboxes(mpl_axis, annotations, gt):
         edgecolour = 'green' if annotation['category_id'] else 'orange'
         draw_bbox(mpl_axis, annotation, edgecolour, gt)
 
-def legend(mpl_axis):
+def legend(mpl_axis, human_flag=True):
     mpl_axis.set(ylim=[mpl_axis.get_ylim()[0]+150,0])
-    proxy_handles = [
-        mpl.patches.Patch(color='red'),
+    proxy_handles, labels = [], []
+    if human_flag:
+        proxy_handles.append(mpl.patches.Patch(color='red'))
+        labels.append('Human')
+    proxy_handles.extend([
         mpl.patches.Patch(color='blue'),
         mpl.patches.Patch(color='green'),
         mpl.patches.Patch(color='orange')
-    ]
+    ])
+    labels.extend(['Model', 'Open', 'Closed'])
+
     legend = mpl_axis.legend(
         proxy_handles,
-        ['Human', 'Model', 'Open', 'Closed'],
+        labels,
         loc='lower center',
         frameon=False,
         fontsize=8,
