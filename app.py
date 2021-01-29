@@ -238,4 +238,10 @@ def preprocess_image(image):
 # Make a resize function here size: (800,500)
 
 if __name__ == '__main__':
+    st.set_page_config(
+        page_title="SAI - StomAI",
+        page_icon=":purple_circle:",
+        layout="centered",
+        initial_sidebar_state="expanded"
+    )
     main()
