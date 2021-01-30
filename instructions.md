@@ -25,8 +25,6 @@ Upload your slide image by either dragging and drop or browsing files.
 By default the summary statistics are calculated using pixels as the default unit.
 Entering your own values for camera calibration and image area will update the summary with SI units.
 
-Developed by: James Bockman in collaboration with Charlotte Sai
-
 Publication: 
 
 Application Code: 

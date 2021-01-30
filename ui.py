@@ -53,8 +53,10 @@ def setup():
 def setup_heading():
     columns = st.beta_columns(4)
     with columns[1]:
-        st.image(Image.open("logos/uoa.jpeg"), width=140)
+        st.image(Image.open("logos/peb.jpeg"), width=145)
     with columns[2]:
+        st.image(Image.open("logos/uoa.jpeg"), width=140)
+    with columns[3]:
         st.image(Image.open("logos/aiml.jpeg"), width=100)
     with columns[0]:
         heading = "<h1 style='text-align: center'>SAI <br> Stoma AI</h1>"
