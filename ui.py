@@ -50,22 +50,25 @@ Option_State = {
 
 
 def setup():
+    draw_title()
     setup_sidebar()
 
 
 def setup_heading():
-    columns = st.beta_columns(4)
-    with columns[1]:
-        st.image(Image.open("logos/peb.jpeg"), width=145)
-    with columns[2]:
-        st.image(Image.open("logos/uoa.jpeg"), width=140)
-    with columns[3]:
-        st.image(Image.open("logos/aiml.jpeg"), width=100)
+    columns = st.beta_columns(3)
     with columns[0]:
-        heading = "<h1 style='text-align: center'>SAI <br> StomaAI</h1>"
-        st.markdown(heading, unsafe_allow_html=True)
+        st.image(Image.open("logos/peb.jpeg"), width=145)
+    with columns[1]:
+        st.image(Image.open("logos/uoa.jpeg"), width=140)
+    with columns[2]:
+        st.image(Image.open("logos/aiml.png"), width=275)
     subheading = "<h3 style='text-align: center'>Accelerating plant physiology research</h3>"
     st.markdown(subheading, unsafe_allow_html=True)
+
+
+def draw_title():
+    heading = "<h1 style='text-align: center'>SAI - StomaAI</h1>"
+    st.markdown(heading, unsafe_allow_html=True)
 
 
 def setup_sidebar():
