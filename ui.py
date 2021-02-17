@@ -27,7 +27,8 @@ OPENCV_FILE_SUPPORT = [
 ENABLED_MODES = [
     'Instructions',
     'View Example Images',
-    'View Example Output',
+    'View Example Slide Output',
+    'View Example Group Output',
     'Upload An Image'
 ]
 
@@ -62,7 +63,10 @@ def setup_heading():
         st.image(Image.open("logos/uoa.jpeg"), width=140)
     with columns[2]:
         st.image(Image.open("logos/aiml.png"), width=275)
-    subheading = "<h3 style='text-align: center'>Accelerating plant physiology research</h3>"
+    subheading = (
+        "<h3 style='text-align: center'>Accelerating plant"
+        " physiology research</h3>"
+    )
     st.markdown(subheading, unsafe_allow_html=True)
 
 
@@ -88,8 +92,28 @@ def display_upload_image():
     draw_calibration_textboxes()
 
 
-def display_example_output():
-    st.write("Example of .csv file output for model predictions on images:")
+def display_group_output_example():
+    message = (
+        "Below is an Example of .csv file output for model"
+        " predictions on a treatment group. In this case "
+        "the arabidopsis and barley samples are used as stand"
+        " ins for two different treatment groups. The rows will"
+        " indicate which group the summary statistics belong to"
+        " and columns will contain which measurements a summary"
+        " relates to. "
+    )
+    st.write(message)
+
+
+def display_slide_output_example():
+    message = (
+        "Below is an Example of .csv file output for model"
+        " predictions on images. In this example, each row"
+        " contains measurements for a different pore. "
+        "Category id is the predicted state of the pore;"
+        " 0 for closed, 1 for open. "
+    )
+    st.write(message)
 
 
 def display_instructions():
@@ -170,7 +194,7 @@ def print_camera_calibration():
 
 def drawing_enabled():
     drawing_ground_truth = Option_State['draw_ground_truth']
-    return draw_predictions_enabled() or drawing_ground_truth 
+    return draw_predictions_enabled() or drawing_ground_truth
 
 
 def draw_predictions_enabled():
@@ -233,5 +257,6 @@ MODE_METHODS = {
     'Instructions': display_instructions,
     'Upload An Image': display_upload_image,
     'View Example Images': display_example_selection,
-    'View Example Output': display_example_output,
+    'View Example Slide Output': display_slide_output_example,
+    'View Example Group Output': display_group_output_example,
 }

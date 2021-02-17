@@ -1,6 +1,3 @@
-import json
-import urllib
-
 import cv2
 import numpy as np
 import pandas as pd
@@ -11,13 +8,29 @@ import ui
 import draw
 from ui import Option_State
 from cloud_files import IMAGE_DICTS
+from load import (
+    load_assets, download_image,
+    download_json, read_byte_stream
+)
+
+is_setup = False
+ONLINE_MODE = True
 
 
 def main():
-    ui.setup()
+    maybe_setup()
     maybe_draw_example()
     maybe_display_summary_statistics()
-    maybe_show_example_output()
+    maybe_show_slide_output_example()
+
+
+def maybe_setup():
+    global is_setup
+    if not is_setup:
+        ui.setup()
+        is_setup = True
+        if ONLINE_MODE:
+            load_assets(IMAGE_DICTS)
 
 
 def get_selected_image():
@@ -74,7 +87,7 @@ def get_ground_truth():
 def filter_low_confidence_predictions(predictions):
     threshold = Option_State['confidence_threshold']
     predictions = [
-        prediction for prediction in predictions 
+        prediction for prediction in predictions
         if prediction['confidence'] >= threshold
     ]
     return predictions
@@ -106,7 +119,7 @@ def do_draw():
 
 
 def is_drawing_mode():
-    return not (is_mode_instructions() or is_mode_example_output())
+    return not (is_mode_instructions() or is_mode_slide_output_example())
 
 
 def is_mode_instructions():
@@ -125,8 +138,8 @@ def is_mode_upload_an_example():
     return Option_State['mode'] == 'Upload An Image'
 
 
-def is_mode_example_output():
-    return Option_State['mode'] == 'View Example Output'
+def is_mode_slide_output_example():
+    return Option_State['mode'] == 'View Example Slide Output'
 
 
 def maybe_display_summary_statistics():
@@ -227,8 +240,8 @@ def is_valid_image_area():
     return is_valid
 
 
-def maybe_show_example_output():
-    if is_mode_example_output():
+def maybe_show_slide_output_example():
+    if is_mode_slide_output_example():
         url = IMAGE_DICTS['Barley']['10Dec 19']['predictions'] + '/download'
         predictions = download_json(url)
         df = pd.DataFrame(predictions['detections'])
@@ -264,24 +277,6 @@ def setup_plot(image):
     ax.axis("off")
     ax.imshow(image)
     return fig, ax
-
-
-@st.cache(show_spinner=True)
-def download_image(url):
-    with urllib.request.urlopen(url) as response:
-        image = read_byte_stream(response)
-    return image
-
-
-@st.cache(show_spinner=True)
-def download_json(url):
-    with urllib.request.urlopen(url) as response:
-        downloaded_json = json.loads(response.read())
-    return downloaded_json
-
-
-def read_byte_stream(bytestream):
-    return np.asarray(bytearray(bytestream.read()), dtype="uint8")
 
 
 def preprocess_image(image):
