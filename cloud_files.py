@@ -1,7 +1,7 @@
 IMAGE_DICTS = {
     'Barley' : {
         '10Dec 19':{
-            'image': 
+            'image':
                 'https://cloudstor.aarnet.edu.au/plus/s/GKYrltfzbIFRAd0',
             'predictions':
                 'https://cloudstor.aarnet.edu.au/plus/s/k1IIwo9XsF7pxyb',

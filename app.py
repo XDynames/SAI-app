@@ -1,3 +1,6 @@
+import os
+import json
+
 import cv2
 import numpy as np
 import pandas as pd
@@ -10,11 +13,10 @@ from ui import Option_State
 from cloud_files import IMAGE_DICTS
 from load import (
     load_assets, download_image,
-    download_json, read_byte_stream
+    download_json, read_byte_stream,
 )
 
 is_setup = False
-ONLINE_MODE = True
 
 
 def main():
@@ -29,13 +31,11 @@ def maybe_setup():
     if not is_setup:
         ui.setup()
         is_setup = True
-        if ONLINE_MODE:
-            load_assets(IMAGE_DICTS)
 
 
 def get_selected_image():
     if Option_State['mode'] == 'View Example Images':
-        image = download_example()
+        image = get_example()
     if Option_State['mode'] == 'Upload An Image':
         image = get_uploaded_image()
     return image
@@ -43,6 +43,30 @@ def get_selected_image():
 
 def get_uploaded_image():
     return read_byte_stream(Option_State['uploaded_file'])
+
+
+def get_local_image_path():
+    species = Option_State['plant_type'].lower()
+    image_name = Option_State['image_name']
+    return os.path.join('.', 'assets', species, image_name + '.png')
+
+
+def is_image_local():
+    filepath = get_local_image_path()
+    return os.path.exists(filepath)
+
+
+def load_image():
+    filepath = get_local_image_path()
+    return cv2.imread(filepath)
+
+
+def get_example():
+    if is_image_local():
+        image = load_image()
+    else:
+        image = download_example()
+    return image
 
 
 def download_example():
@@ -75,13 +99,59 @@ def draw_predictions(mpl_axis):
     draw_labels_on_image(mpl_axis, predictions, False)
 
 
+def is_predictions_json_local():
+    filepath = get_local_predictions_path()
+    return os.path.exists(filepath)
+
+
+def load_predictions():
+    filepath = get_local_predictions_path()
+    return load_json(filepath)
+
+
 def get_and_filter_predictions():
-    predictions = download_predictions()['detections']
+    if is_predictions_json_local():
+        predictions = load_predictions()
+    else:
+        predictions = download_predictions()
+    predictions = predictions['detections']
     return filter_low_confidence_predictions(predictions)
 
 
+def get_local_ground_truth_path():
+    species = Option_State['plant_type'].lower()
+    image_name = Option_State['image_name']
+    return os.path.join('.', 'assets', species, image_name + '-gt.json')
+
+
+def get_local_predictions_path():
+    species = Option_State['plant_type'].lower()
+    image_name = Option_State['image_name']
+    return os.path.join('.', 'assets', species, image_name + '.json')
+
+
+def is_ground_truth_json_local():
+    filepath = get_local_ground_truth_path()
+    return os.path.exists(filepath)
+
+
+def load_ground_truth():
+    filepath = get_local_ground_truth_path()
+    return load_json(filepath)
+
+
+def load_json(filepath):
+    with open(filepath, 'r') as file:
+        json_dict = json.load(file)
+    return json_dict
+
+
 def get_ground_truth():
-    return download_ground_truth()['detections']
+    if is_ground_truth_json_local():
+        ground_truth = load_ground_truth()
+    else:
+        ground_truth = download_ground_truth()
+    return ground_truth['detections']
 
 
 def filter_low_confidence_predictions(predictions):
@@ -253,7 +323,6 @@ def maybe_show_slide_output_example():
 
 def draw_example():
     image = get_selected_image()
-    image = preprocess_image(image)
     update_image_size(image)
     fig, ax = setup_plot(image)
     if Option_State['draw_predictions'] and is_mode_view_examples():
@@ -277,12 +346,6 @@ def setup_plot(image):
     ax.axis("off")
     ax.imshow(image)
     return fig, ax
-
-
-def preprocess_image(image):
-    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    image = image[:, :, [2, 1, 0]]
-    return image
 
 # Make a resize function here size: (800,500)
 
