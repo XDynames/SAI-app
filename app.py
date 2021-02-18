@@ -213,7 +213,9 @@ def is_mode_slide_output_example():
 
 
 def maybe_display_summary_statistics():
-    if is_mode_upload_an_example() or is_mode_view_examples():
+    if is_mode_view_examples():
+        display_summary_statistics()
+    if is_mode_upload_an_example() and not ui.IS_ONLINE:
         display_summary_statistics()
 
 
@@ -346,8 +348,6 @@ def setup_plot(image):
     ax.axis("off")
     ax.imshow(image)
     return fig, ax
-
-# Make a resize function here size: (800,500)
 
 
 if __name__ == '__main__':

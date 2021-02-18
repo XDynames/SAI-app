@@ -4,6 +4,8 @@ import streamlit as st
 
 from cloud_files import IMAGE_DICTS
 
+IS_ONLINE = True
+
 PLANT_OPTIONS = [
     'Barley',
     'Arabidopsis',
@@ -88,8 +90,17 @@ def display_example_selection():
 
 
 def display_upload_image():
-    file_upload()
-    draw_calibration_textboxes()
+    if IS_ONLINE:
+        message = (
+            "This feature is disabled in the online version of"
+            " the application. To use this functionality please"
+            " go to <INSERT LINK> to install and run the application"
+            " locally."
+        )
+        st.write(message)
+    else:
+        file_upload()
+        draw_calibration_textboxes()
 
 
 def display_group_output_example():
