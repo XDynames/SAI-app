@@ -27,7 +27,6 @@ ENABLED_MODES = [
     "Instructions",
     "View Example Images",
     "View Example Slide Output",
-    "View Example Group Output",
     "Upload An Image",
 ]
 
