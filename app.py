@@ -12,8 +12,10 @@ import draw
 from ui import Option_State
 from cloud_files import IMAGE_DICTS
 from load import (
-    load_assets, download_image,
-    download_json, read_byte_stream,
+    load_assets,
+    download_image,
+    download_json,
+    read_byte_stream,
 )
 
 is_setup = False
@@ -34,21 +36,21 @@ def maybe_setup():
 
 
 def get_selected_image():
-    if Option_State['mode'] == 'View Example Images':
+    if Option_State["mode"] == "View Example Images":
         image = get_example()
-    if Option_State['mode'] == 'Upload An Image':
+    if Option_State["mode"] == "Upload An Image":
         image = get_uploaded_image()
     return image
 
 
 def get_uploaded_image():
-    return read_byte_stream(Option_State['uploaded_file'])
+    return read_byte_stream(Option_State["uploaded_file"])
 
 
 def get_local_image_path():
-    species = Option_State['plant_type'].lower()
-    image_name = Option_State['image_name']
-    return os.path.join('.', 'assets', species, image_name + '.png')
+    species = Option_State["plant_type"].lower()
+    image_name = Option_State["image_name"]
+    return os.path.join(".", "assets", species, image_name + ".png")
 
 
 def is_image_local():
@@ -71,27 +73,27 @@ def get_example():
 
 def download_example():
     urls = get_current_image_urls()
-    return download_image(urls['image'] + '/download')
+    return download_image(urls["image"] + "/download")
 
 
 def get_current_image_urls():
-    image_name = Option_State['image_name']
-    return Option_State['image_url_dicts'][image_name]
+    image_name = Option_State["image_name"]
+    return Option_State["image_url_dicts"][image_name]
 
 
 def download_annotations():
     urls = get_current_image_urls()
-    return download_json(urls['annotations'] + '/download')
+    return download_json(urls["annotations"] + "/download")
 
 
 def download_predictions():
     urls = get_current_image_urls()
-    return download_json(urls['predictions'] + '/download')
+    return download_json(urls["predictions"] + "/download")
 
 
 def download_ground_truth():
     urls = get_current_image_urls()
-    return download_json(urls['ground_truth'] + '/download')
+    return download_json(urls["ground_truth"] + "/download")
 
 
 def draw_predictions(mpl_axis):
@@ -114,20 +116,20 @@ def get_and_filter_predictions():
         predictions = load_predictions()
     else:
         predictions = download_predictions()
-    predictions = predictions['detections']
+    predictions = predictions["detections"]
     return filter_low_confidence_predictions(predictions)
 
 
 def get_local_ground_truth_path():
-    species = Option_State['plant_type'].lower()
-    image_name = Option_State['image_name']
-    return os.path.join('.', 'assets', species, image_name + '-gt.json')
+    species = Option_State["plant_type"].lower()
+    image_name = Option_State["image_name"]
+    return os.path.join(".", "assets", species, image_name + "-gt.json")
 
 
 def get_local_predictions_path():
-    species = Option_State['plant_type'].lower()
-    image_name = Option_State['image_name']
-    return os.path.join('.', 'assets', species, image_name + '.json')
+    species = Option_State["plant_type"].lower()
+    image_name = Option_State["image_name"]
+    return os.path.join(".", "assets", species, image_name + ".json")
 
 
 def is_ground_truth_json_local():
@@ -141,7 +143,7 @@ def load_ground_truth():
 
 
 def load_json(filepath):
-    with open(filepath, 'r') as file:
+    with open(filepath, "r") as file:
         json_dict = json.load(file)
     return json_dict
 
@@ -151,14 +153,15 @@ def get_ground_truth():
         ground_truth = load_ground_truth()
     else:
         ground_truth = download_ground_truth()
-    return ground_truth['detections']
+    return ground_truth["detections"]
 
 
 def filter_low_confidence_predictions(predictions):
-    threshold = Option_State['confidence_threshold']
+    threshold = Option_State["confidence_threshold"]
     predictions = [
-        prediction for prediction in predictions
-        if prediction['confidence'] >= threshold
+        prediction
+        for prediction in predictions
+        if prediction["confidence"] >= threshold
     ]
     return predictions
 
@@ -169,11 +172,11 @@ def draw_ground_truth(mpl_axis):
 
 
 def draw_labels_on_image(mpl_axis, annotations, gt):
-    if Option_State['draw_bboxes']:
+    if Option_State["draw_bboxes"]:
         draw.bboxes(mpl_axis, annotations, gt)
-    if Option_State['draw_masks']:
+    if Option_State["draw_masks"]:
         draw.masks(mpl_axis, annotations, gt)
-    if Option_State['draw_keypoints']:
+    if Option_State["draw_keypoints"]:
         draw.keypoints(mpl_axis, annotations, gt)
 
 
@@ -193,23 +196,23 @@ def is_drawing_mode():
 
 
 def is_mode_instructions():
-    return Option_State['mode'] == 'Instructions'
+    return Option_State["mode"] == "Instructions"
 
 
 def is_file_uploaded():
-    return Option_State['uploaded_file'] is not None
+    return Option_State["uploaded_file"] is not None
 
 
 def is_mode_view_examples():
-    return Option_State['mode'] == 'View Example Images'
+    return Option_State["mode"] == "View Example Images"
 
 
 def is_mode_upload_an_example():
-    return Option_State['mode'] == 'Upload An Image'
+    return Option_State["mode"] == "Upload An Image"
 
 
 def is_mode_slide_output_example():
-    return Option_State['mode'] == 'View Example Slide Output'
+    return Option_State["mode"] == "View Example Slide Output"
 
 
 def maybe_display_summary_statistics():
@@ -263,7 +266,7 @@ def display_pore_count(annotations):
 
 def display_pore_density(annotations):
     if is_valid_image_area():
-        area = Option_State['image_area']
+        area = Option_State["image_area"]
         density = round(len(annotations) / area, 2)
         st.write(f"{density} stomata/mm\u00B2")
     else:
@@ -271,17 +274,17 @@ def display_pore_density(annotations):
 
 
 def display_average_length(annotations):
-    average_length = average_key(annotations, 'length')
-    print_summary_metric(average_length, '\u03BCm', 'px')
+    average_length = average_key(annotations, "length")
+    print_summary_metric(average_length, "\u03BCm", "px")
 
 
 def display_average_width(annotations):
-    average_width = average_key(annotations, 'width')
-    print_summary_metric(average_width, '\u03BCm', 'px')
+    average_width = average_key(annotations, "width")
+    print_summary_metric(average_width, "\u03BCm", "px")
 
 
 def display_average_area(annotations):
-    average_area = average_key(annotations, 'area')
+    average_area = average_key(annotations, "area")
     print_summary_metric(average_area, "\u03BCm\u00B2", "px\u00B2")
 
 
@@ -296,30 +299,28 @@ def average_key(annotations, key):
     values = [annotation[key] for annotation in annotations]
     average = sum(values) / len(values)
     if is_valid_calibration():
-        average /= Option_State['camera_calibration']
+        average /= Option_State["camera_calibration"]
     return round(average, 2)
 
 
 def is_valid_calibration():
-    return Option_State['camera_calibration'] > 0.0001
+    return Option_State["camera_calibration"] > 0.0001
 
 
 def is_valid_image_area():
     is_valid = False
-    has_input = Option_State['uploaded_file'] is not None
+    has_input = Option_State["uploaded_file"] is not None
     if has_input:
-        is_valid = Option_State['image_area'] > 0.0001
+        is_valid = Option_State["image_area"] > 0.0001
     return is_valid
 
 
 def maybe_show_slide_output_example():
     if is_mode_slide_output_example():
-        url = IMAGE_DICTS['Barley']['10Dec 19']['predictions'] + '/download'
+        url = IMAGE_DICTS["Barley"]["10Dec 19"]["predictions"] + "/download"
         predictions = download_json(url)
-        df = pd.DataFrame(predictions['detections'])
-        df = df.drop(
-            columns=['bbox', 'AB_keypoints', 'CD_keypoints', 'segmentation']
-        )
+        df = pd.DataFrame(predictions["detections"])
+        df = df.drop(columns=["bbox", "AB_keypoints", "CD_keypoints", "segmentation"])
         st.table(df.head(21))
 
 
@@ -327,20 +328,24 @@ def draw_example():
     image = get_selected_image()
     update_image_size(image)
     fig, ax = setup_plot(image)
-    if Option_State['draw_predictions'] and is_mode_view_examples():
+    draw_annotations_on_image(ax)
+    st.write(fig)
+
+
+def draw_annotations_on_image(ax):
+    if Option_State["draw_predictions"] and is_mode_view_examples():
         draw_predictions(ax)
-    if Option_State['draw_ground_truth'] and is_mode_view_examples():
+    if Option_State["draw_ground_truth"] and is_mode_view_examples():
         draw_ground_truth(ax)
     # Add Resize here
     if is_mode_upload_an_example():
         draw.legend(ax, False)
     else:
         draw.legend(ax)
-    st.write(fig)
 
 
 def update_image_size(image):
-    Option_State['image_size'] = (image.shape[:-1])
+    Option_State["image_size"] = image.shape[:-1]
 
 
 def setup_plot(image):
@@ -350,11 +355,11 @@ def setup_plot(image):
     return fig, ax
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     st.set_page_config(
         page_title="SAI - StomAI",
         page_icon=":purple_circle:",
         layout="centered",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
     )
     main()

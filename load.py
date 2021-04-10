@@ -36,9 +36,9 @@ def preprocess_image(image):
 
 
 def download_assets(asset_url_dict, species, image_name):
-    image_url = asset_url_dict['image'] + '/download'
-    prediction_url = asset_url_dict['predictions'] + '/download'
-    gt_url = asset_url_dict['ground_truth'] + '/download'
+    image_url = asset_url_dict["image"] + "/download"
+    prediction_url = asset_url_dict["predictions"] + "/download"
+    gt_url = asset_url_dict["ground_truth"] + "/download"
     image = download_image(image_url)
     image = preprocess_image(image)
     gt_json = download_json(gt_url)
@@ -49,16 +49,16 @@ def download_assets(asset_url_dict, species, image_name):
 
 
 def save_json(json_file, folder, filename, gt=False):
-    filename += '-gt' if gt else ''
-    filename += '.json'
-    path = os.path.join('.', 'assets', folder, filename)
-    with open(path, 'w') as file:
+    filename += "-gt" if gt else ""
+    filename += ".json"
+    path = os.path.join(".", "assets", folder, filename)
+    with open(path, "w") as file:
         json.dump(json_file, file)
 
 
 def save_image(image, folder, filename):
-    filename += '.png'
-    path = os.path.join('.', 'assets', folder, filename)
+    filename += ".png"
+    path = os.path.join(".", "assets", folder, filename)
     cv2.imwrite(path, image)
 
 
@@ -75,21 +75,16 @@ def async_load_assets(cloud_files):
         for species in cloud_files.keys():
             for image_name in cloud_files[species].keys():
                 image_dict = cloud_files[species][image_name]
-                executor.submit(
-                    download_assets,
-                    image_dict,
-                    species,
-                    image_name
-                )
+                executor.submit(download_assets, image_dict, species, image_name)
 
 
 def main():
-    if not os.path.exists('./assets/'):
-        os.mkdir('./assets/')
-        os.mkdir('./assets/arabidopsis/')
-        os.mkdir('./assets/barley/')
+    if not os.path.exists("./assets/"):
+        os.mkdir("./assets/")
+        os.mkdir("./assets/arabidopsis/")
+        os.mkdir("./assets/barley/")
     async_load_assets(IMAGE_DICTS)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

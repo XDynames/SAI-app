@@ -7,48 +7,45 @@ from cloud_files import IMAGE_DICTS
 IS_ONLINE = True
 
 PLANT_OPTIONS = [
-    'Barley',
-    'Arabidopsis',
+    "Barley",
+    "Arabidopsis",
 ]
 
 IMAGE_AREA = {
-    'Barley': 0.3229496,
-    'Arabidopsis': 0.04794822,
+    "Barley": 0.3229496,
+    "Arabidopsis": 0.04794822,
 }
 # pixels / micron
 CAMERA_CALIBRATION = {
-    'Barley': 4.2736,
-    'Arabidopsis': 10.25131,
+    "Barley": 4.2736,
+    "Arabidopsis": 10.25131,
 }
 
-OPENCV_FILE_SUPPORT = [
-    'png', 'bmp', 'jpeg', 'jpg',
-    'jpe', 'jp2', 'tiff', 'tif'
-]
+OPENCV_FILE_SUPPORT = ["png", "bmp", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif"]
 
 ENABLED_MODES = [
-    'Instructions',
-    'View Example Images',
-    'View Example Slide Output',
-    'View Example Group Output',
-    'Upload An Image'
+    "Instructions",
+    "View Example Images",
+    "View Example Slide Output",
+    "View Example Group Output",
+    "Upload An Image",
 ]
 
 Option_State = {
-    'mode': '',
-    'plant_type': '',
-    'image_url_dicts': {},
-    'image_name': '',
-    'draw_predictions': False,
-    'draw_ground_truth': False,
-    'draw_bboxes': True,
-    'draw_masks': True,
-    'draw_keypoints': True,
-    'uploaded_file': None,
-    'confidence_threshold': 0.5,
-    'image_size': None,
-    'image_area': 0.0,
-    'camera_calibration': None,
+    "mode": "",
+    "plant_type": "",
+    "image_url_dicts": {},
+    "image_name": "",
+    "draw_predictions": False,
+    "draw_ground_truth": False,
+    "draw_bboxes": True,
+    "draw_masks": True,
+    "draw_keypoints": True,
+    "uploaded_file": None,
+    "confidence_threshold": 0.5,
+    "image_size": None,
+    "image_area": 0.0,
+    "camera_calibration": None,
 }
 
 
@@ -66,8 +63,7 @@ def setup_heading():
     with columns[2]:
         st.image(Image.open("logos/aiml.png"), width=275)
     subheading = (
-        "<h3 style='text-align: center'>Accelerating plant"
-        " physiology research</h3>"
+        "<h3 style='text-align: center'>Accelerating plant" " physiology research</h3>"
     )
     st.markdown(subheading, unsafe_allow_html=True)
 
@@ -79,7 +75,7 @@ def draw_title():
 
 def setup_sidebar():
     mode_selection()
-    MODE_METHODS[Option_State['mode']]()
+    MODE_METHODS[Option_State["mode"]]()
 
 
 def display_example_selection():
@@ -129,7 +125,7 @@ def display_slide_output_example():
 
 def display_instructions():
     setup_heading()
-    with open('instructions.md') as file:
+    with open("instructions.md") as file:
         markdown_string = file.read()
     st.markdown(markdown_string)
 
@@ -140,29 +136,29 @@ def drawing_options():
     if draw_predictions_enabled():
         confience_sliderbar()
     if drawing_enabled():
-        st.sidebar.write('Types of Measurments:')
+        st.sidebar.write("Types of Measurments:")
         draw_bboxes_checkbox()
         draw_masks_checkbox()
         draw_keypoints_checkbox()
 
 
 def draw_bboxes_checkbox():
-    Option_State['draw_bboxes'] = st.sidebar.checkbox(
-        'Show Bounding Boxes',
+    Option_State["draw_bboxes"] = st.sidebar.checkbox(
+        "Show Bounding Boxes",
         value=True,
     )
 
 
 def draw_masks_checkbox():
-    Option_State['draw_masks'] = st.sidebar.checkbox(
-        'Show Pore Segmentations',
+    Option_State["draw_masks"] = st.sidebar.checkbox(
+        "Show Pore Segmentations",
         value=True,
     )
 
 
 def draw_keypoints_checkbox():
-    Option_State['draw_keypoints'] = st.sidebar.checkbox(
-        'Show Lengths and Widths',
+    Option_State["draw_keypoints"] = st.sidebar.checkbox(
+        "Show Lengths and Widths",
         value=True,
     )
 
@@ -176,98 +172,85 @@ def draw_calibration_textboxes():
 
 
 def draw_camera_calibration_textbox():
-    Option_State['camera_calibration'] = st.sidebar.number_input(
+    Option_State["camera_calibration"] = st.sidebar.number_input(
         "Camera Calibration (px/\u03BCm):",
         min_value=0.0,
         value=0.0,
         step=0.5,
-        format='%.3f'
+        format="%.3f",
     )
-    if Option_State['image_size'] is not None:
-        image_size = Option_State['image_size']
-        area = (
-            convert_to_SIU_length(image_size[0]) *
-            convert_to_SIU_length(image_size[1])
+    if Option_State["image_size"] is not None:
+        image_size = Option_State["image_size"]
+        area = convert_to_SIU_length(image_size[0]) * convert_to_SIU_length(
+            image_size[1]
         )
-        Option_State['image_area'] = area
+        Option_State["image_area"] = area
 
 
 def convert_to_SIU_length(pixel_length):
-    return pixel_length * Option_State['camera_calibration']
+    return pixel_length * Option_State["camera_calibration"]
 
 
 def print_camera_calibration():
-    camera_calibration = CAMERA_CALIBRATION[Option_State['plant_type']]
-    Option_State['camera_calibration'] = camera_calibration
+    camera_calibration = CAMERA_CALIBRATION[Option_State["plant_type"]]
+    Option_State["camera_calibration"] = camera_calibration
     message = f"Camera Calibration: {camera_calibration:.4} px/\u03BCm"
     st.sidebar.write(message)
 
 
 def drawing_enabled():
-    drawing_ground_truth = Option_State['draw_ground_truth']
+    drawing_ground_truth = Option_State["draw_ground_truth"]
     return draw_predictions_enabled() or drawing_ground_truth
 
 
 def draw_predictions_enabled():
-    return Option_State['draw_predictions']
+    return Option_State["draw_predictions"]
 
 
 def file_upload():
-    Option_State['uploaded_file'] = st.file_uploader(
-        "Upload Files",
-        type=OPENCV_FILE_SUPPORT
+    Option_State["uploaded_file"] = st.file_uploader(
+        "Upload Files", type=OPENCV_FILE_SUPPORT
     )
 
 
 def mode_selection():
-    Option_State['mode'] = st.sidebar.selectbox(
-        'Select Application Mode:',
-        ENABLED_MODES
+    Option_State["mode"] = st.sidebar.selectbox(
+        "Select Application Mode:", ENABLED_MODES
     )
 
 
 def confience_sliderbar():
-    Option_State['confidence_threshold'] = st.sidebar.slider(
-        'Confidence Threshold',
-        min_value=0.0,
-        max_value=1.0,
-        value=0.5,
-        step=0.05
+    Option_State["confidence_threshold"] = st.sidebar.slider(
+        "Confidence Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.05
     )
 
 
 def plant_type_selection():
-    Option_State['plant_type'] = st.sidebar.selectbox(
-        'Select a plant type:',
-        PLANT_OPTIONS
+    Option_State["plant_type"] = st.sidebar.selectbox(
+        "Select a plant type:", PLANT_OPTIONS
     )
 
 
 def image_selection():
-    image_dict = IMAGE_DICTS[Option_State['plant_type']]
-    Option_State['image_url_dicts'] = image_dict
-    Option_State['image_name'] = st.sidebar.selectbox(
-        'Select image:',
-        [image_name for image_name in image_dict.keys()]
+    image_dict = IMAGE_DICTS[Option_State["plant_type"]]
+    Option_State["image_url_dicts"] = image_dict
+    Option_State["image_name"] = st.sidebar.selectbox(
+        "Select image:", [image_name for image_name in image_dict.keys()]
     )
 
 
 def draw_ground_truth_checkbox():
-    Option_State['draw_ground_truth'] = st.sidebar.checkbox(
-        'Show Human Measurements'
-    )
+    Option_State["draw_ground_truth"] = st.sidebar.checkbox("Show Human Measurements")
 
 
 def draw_predictions_checkbox():
-    Option_State['draw_predictions'] = st.sidebar.checkbox(
-        'Show Model Predictions'
-    )
+    Option_State["draw_predictions"] = st.sidebar.checkbox("Show Model Predictions")
 
 
 MODE_METHODS = {
-    'Instructions': display_instructions,
-    'Upload An Image': display_upload_image,
-    'View Example Images': display_example_selection,
-    'View Example Slide Output': display_slide_output_example,
-    'View Example Group Output': display_group_output_example,
+    "Instructions": display_instructions,
+    "Upload An Image": display_upload_image,
+    "View Example Images": display_example_selection,
+    "View Example Slide Output": display_slide_output_example,
+    "View Example Group Output": display_group_output_example,
 }
