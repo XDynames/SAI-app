@@ -2,17 +2,16 @@ import os
 import json
 
 import cv2
-import numpy as np
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
-import ui
-import draw
-from ui import Option_State
-from cloud_files import IMAGE_DICTS
-from load import (
-    load_assets,
+from interface import ui
+from tools.state import Option_State
+from tools import draw
+from tools.constants import IS_ONLINE
+from tools.cloud_files import IMAGE_DICTS
+from tools.load import (
     download_image,
     download_json,
     read_byte_stream,
@@ -218,7 +217,7 @@ def is_mode_slide_output_example():
 def maybe_display_summary_statistics():
     if is_mode_view_examples():
         display_summary_statistics()
-    if is_mode_upload_an_example() and not ui.IS_ONLINE:
+    if is_mode_upload_an_example() and not IS_ONLINE:
         display_summary_statistics()
 
 

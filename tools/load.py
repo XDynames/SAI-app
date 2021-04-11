@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import streamlit as st
 
-from cloud_files import IMAGE_DICTS
+from .cloud_files import IMAGE_DICTS
 
 
 @st.cache(show_spinner=True)

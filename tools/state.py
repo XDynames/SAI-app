@@ -1,0 +1,16 @@
+Option_State = {
+    "mode": "",
+    "plant_type": "",
+    "image_url_dicts": {},
+    "image_name": "",
+    "draw_predictions": False,
+    "draw_ground_truth": False,
+    "draw_bboxes": True,
+    "draw_masks": True,
+    "draw_keypoints": True,
+    "uploaded_file": None,
+    "confidence_threshold": 0.5,
+    "image_size": None,
+    "image_area": 0.0,
+    "camera_calibration": None,
+}
