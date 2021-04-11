@@ -1,8 +1,8 @@
 # Install StomaAI
 To install the requirements for the application to run locally on your machine run the commands:
 ```
-git clone https://github.com/XDynames/app-stomata-automeasure.git
-cd app-stomata-automeasure
+git clone https://github.com/XDynames/SAI-app.git
+cd SAI-app
 pip install -r requirements.txt
 ```
 
