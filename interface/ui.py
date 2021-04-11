@@ -4,7 +4,10 @@ from tools.state import Option_State
 from .landing import display_instructions
 from .upload import display_upload_image
 from .example_images import display_example_selection
-from .example_output import display_group_output_example, display_slide_output_example
+from .example_output import (
+    display_group_output_example,
+    display_slide_output_example
+)
 
 ENABLED_MODES = [
     "Instructions",

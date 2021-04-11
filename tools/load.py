@@ -75,7 +75,12 @@ def async_load_assets(cloud_files):
         for species in cloud_files.keys():
             for image_name in cloud_files[species].keys():
                 image_dict = cloud_files[species][image_name]
-                executor.submit(download_assets, image_dict, species, image_name)
+                executor.submit(
+                    download_assets,
+                    image_dict,
+                    species,
+                    image_name
+                )
 
 
 def main():
