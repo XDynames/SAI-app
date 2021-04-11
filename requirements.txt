@@ -2,3 +2,4 @@ numpy==1.19.4
 matplotlib==3.3.3
 streamlit==0.72.0
 opencv-python==4.4.0.46
+pandas==1.2.3

@@ -11,12 +11,5 @@ def maybe_show_slide_output_example():
         url = IMAGE_DICTS["Barley"]["10Dec 19"]["predictions"] + "/download"
         predictions = download_json(url)
         df = pd.DataFrame(predictions["detections"])
-        df = df.drop(
-            columns=[
-                "bbox",
-                "AB_keypoints",
-                "CD_keypoints",
-                "segmentation"
-            ]
-        )
+        df = df.drop(columns=["bbox", "AB_keypoints", "CD_keypoints", "segmentation"])
         st.table(df.head(21))

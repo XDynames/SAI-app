@@ -3,10 +3,7 @@ import os
 import cv2
 
 from tools.state import Option_State
-from tools.load import (
-    download_image,
-    read_byte_stream
-)
+from tools.load import download_image, read_byte_stream
 from app import utils
 
 

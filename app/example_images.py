@@ -5,10 +5,7 @@ from tools import draw
 from tools.state import Option_State
 from app import utils
 from .image_retrieval import get_selected_image
-from .annotation_retrieval import (
-    get_ground_truth,
-    get_predictions
-)
+from .annotation_retrieval import get_ground_truth, get_predictions
 
 
 def maybe_draw_example():
