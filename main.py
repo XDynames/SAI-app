@@ -4,23 +4,18 @@ from interface import ui
 
 from app.example_images import maybe_draw_example
 from app.example_output import maybe_show_slide_output_example
+from app.inference import maybe_do_inference
 from app.summary_statistics import maybe_display_summary_statistics
 
 is_setup = False
 
 
 def main():
-    maybe_setup()
+    ui.setup()
     maybe_draw_example()
     maybe_display_summary_statistics()
     maybe_show_slide_output_example()
-
-
-def maybe_setup():
-    global is_setup
-    if not is_setup:
-        ui.setup()
-        is_setup = True
+    maybe_do_inference()
 
 
 if __name__ == "__main__":

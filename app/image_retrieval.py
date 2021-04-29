@@ -3,7 +3,7 @@ import os
 import cv2
 
 from tools.state import Option_State
-from tools.load import download_image, read_byte_stream
+from tools.load import download_image, read_byte_stream, preprocess_image
 from app import utils
 
 
@@ -45,4 +45,4 @@ def download_example():
 
 
 def get_uploaded_image():
-    return read_byte_stream(Option_State["uploaded_file"])
+    return preprocess_image(read_byte_stream(Option_State["uploaded_file"]))
