@@ -1,10 +1,14 @@
 numpy==1.20.2
 matplotlib==3.3.3
-streamlit==0.72.0
-opencv-python==4.4.0.46
+streamlit==0.81.0
+opencv-python
 pandas==1.2.3
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.8.1+cpu
 torchvision==0.9.1+cpu
 torchaudio==0.8.1
 git+https://github.com/facebookresearch/detectron2.git
+shapely==1.6.4
+rasterio==1.2.3
+mask-to-polygons==0.0.2
+geojson

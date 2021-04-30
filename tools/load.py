@@ -47,6 +47,11 @@ def download_and_save_model_weights(url, filename):
     filename.write_bytes(response.content)
 
 
+def decode_downloaded_image(bytestream):
+    array = read_byte_stream(bytestream)
+    return preprocess_image(array)
+
+
 def read_byte_stream(bytestream):
     return np.asarray(bytearray(bytestream.read()), dtype="uint8")
 

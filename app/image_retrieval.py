@@ -45,4 +45,4 @@ def download_example():
 
 
 def get_uploaded_image():
-    return preprocess_image(read_byte_stream(Option_State["uploaded_file"]))
+    return Option_State["uploaded_file"]

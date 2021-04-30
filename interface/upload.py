@@ -1,6 +1,7 @@
 import streamlit as st
 
-from interface.example_images import plant_type_selection
+from interface.example_images import plant_type_selection, confidence_sliderbar
+from tools.load import decode_downloaded_image
 from tools.state import Option_State
 from tools.constants import (
     IS_ONLINE,
@@ -20,13 +21,16 @@ def display_upload_image():
     else:
         file_upload()
         plant_type_selection()
+        confidence_sliderbar()
         draw_camera_calibration_textbox()
 
 
 def file_upload():
-    Option_State["uploaded_file"] = st.file_uploader(
+    file_like_object = st.file_uploader(
         "Upload Files", type=OPENCV_FILE_SUPPORT
     )
+    if file_like_object is not None:
+        Option_State["uploaded_file"] = decode_downloaded_image(file_like_object)
 
 
 def draw_camera_calibration_textbox():
