@@ -1,5 +1,6 @@
 import streamlit as st
 
+from interface.example_images import plant_type_selection
 from tools.state import Option_State
 from tools.constants import (
     IS_ONLINE,
@@ -18,17 +19,14 @@ def display_upload_image():
         st.write(message)
     else:
         file_upload()
-        draw_calibration_textboxes()
+        plant_type_selection()
+        draw_camera_calibration_textbox()
 
 
 def file_upload():
     Option_State["uploaded_file"] = st.file_uploader(
         "Upload Files", type=OPENCV_FILE_SUPPORT
     )
-
-
-def draw_calibration_textboxes():
-    draw_camera_calibration_textbox()
 
 
 def draw_camera_calibration_textbox():

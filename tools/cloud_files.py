@@ -181,8 +181,9 @@ IMAGE_DICTS = {
 }
 
 EXTERNAL_DEPENDANCIES = {
-    "barley_weights": "https://cloudstor.aarnet.edu.au/plus/s/KWFjWBLlE18n9M9",
-    "barley_config": "https://cloudstor.aarnet.edu.au/plus/s/qJztazXzBeOLO7E",
-    "arabidopsis_weights": "",
-    "arabidopsis_config": "",
+    "base_config": "https://cloudstor.aarnet.edu.au/plus/s/WWGw6Pjt7czIjDc",
+    "Barley_weights": "https://cloudstor.aarnet.edu.au/plus/s/KWFjWBLlE18n9M9",
+    "Barley_config": "https://cloudstor.aarnet.edu.au/plus/s/qJztazXzBeOLO7E",
+    "Arabidopsis_weights": "https://cloudstor.aarnet.edu.au/plus/s/iLB4PwuKqjbdSWg",
+    "Arabidopsis_config": "https://cloudstor.aarnet.edu.au/plus/s/wrWnwgdVDNaCFRC",
 }

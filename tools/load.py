@@ -1,6 +1,9 @@
-import os
 import json
+import os
+import pathlib
+import requests
 import urllib
+import yaml
 from concurrent import futures
 
 import cv2
@@ -23,6 +26,25 @@ def download_json(url):
     with urllib.request.urlopen(url) as response:
         downloaded_json = json.loads(response.read())
     return downloaded_json
+
+def download_and_save_yaml(url, filename):
+    save_yaml(filename, download_yaml(url))
+
+def download_yaml(url):
+    with urllib.request.urlopen(url) as response:
+        downloaded_yaml = yaml.safe_load(response)
+    return downloaded_yaml
+
+
+def save_yaml(filename, downloaded_yaml):
+    with open(filename, 'w') as file:
+        yaml.dump(downloaded_yaml, file)
+
+
+def download_and_save_model_weights(url, filename):
+    filename = pathlib.Path(filename)
+    response = requests.get(url)
+    filename.write_bytes(response.content)
 
 
 def read_byte_stream(bytestream):
@@ -79,11 +101,27 @@ def async_load_assets(cloud_files):
 
 
 def main():
-    if not os.path.exists("./assets/"):
-        os.mkdir("./assets/")
-        os.mkdir("./assets/arabidopsis/")
-        os.mkdir("./assets/barley/")
+    maybe_create_folders()
     async_load_assets(IMAGE_DICTS)
+
+
+def maybe_create_folders():
+    if not os.path.exists("./assets/"):
+        create_asset_folders()
+    if not os.path.exists("./output/"):
+        create_output_folder()
+
+
+def create_asset_folders():
+    os.mkdir("./assets/")
+    os.mkdir("./assets/arabidopsis/")
+    os.mkdir("./assets/barley/")
+    os.mkdir("./assets/config/")
+
+
+def create_output_folder():
+    os.mkdir("./output/")
+
 
 
 if __name__ == "__main__":

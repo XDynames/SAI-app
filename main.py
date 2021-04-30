@@ -1,6 +1,7 @@
 import streamlit as st
 
 from interface import ui
+from tools.load import maybe_create_folders
 
 from app.example_images import maybe_draw_example
 from app.example_output import maybe_show_slide_output_example
@@ -19,10 +20,12 @@ def main():
 
 
 if __name__ == "__main__":
+    maybe_create_folders()
     st.set_page_config(
         page_title="SAI - StomAI",
         page_icon=":purple_circle:",
         layout="centered",
         initial_sidebar_state="expanded",
     )
+
     main()
