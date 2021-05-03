@@ -23,6 +23,10 @@ def is_file_uploaded():
     return Option_State["uploaded_file"] is not None
 
 
+def is_image_folder_avaiable():
+    return not Option_State["folder_path"] == ""
+
+
 def is_mode_view_examples():
     return Option_State["mode"] == "View Example Images"
 
@@ -37,3 +41,6 @@ def is_mode_upload_an_example():
 
 def is_mode_slide_output_example():
     return Option_State["mode"] == "View Example Slide Output"
+
+def is_mode_upload_multiple_images():
+    return Option_State["mode"] == "Upload Multiple Images"

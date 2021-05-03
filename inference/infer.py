@@ -26,8 +26,7 @@ class InferenceEngine:
     def run_on_image(self, image):
         predictions = self.predictor(image)
         self._post_process_predictions(predictions)
-        #is_output = self._visualise_predictions(predictions['instances'], image)
-        return predictions#, vis_output
+        return predictions
     
     def _post_process_predictions(self, predictions):
         instances = predictions["instances"].to(self.cpu_device)
@@ -63,14 +62,13 @@ def maybe_setup_inference_engine():
     if Inference_Engines[selected_species] is None:
         setup_inference_engine(selected_species)
 
+
 def setup_inference_engine(selected_species):
     maybe_download_config_files(selected_species)
     maybe_download_model_weights(selected_species)
-    # create detectron2 config
     configuration = setup_model_configuration(selected_species)
     Inference_Engines[selected_species] = InferenceEngine(configuration)
-    # Instance gloabl InferenceEngine
-    #   one for arabidopsis one for barley?
+
 
 def maybe_download_config_files(selected_species):
     if not os.path.exists(f'./assets/config/{selected_species}.yaml'):
@@ -83,17 +81,21 @@ def maybe_download_config_files(selected_species):
         url = EXTERNAL_DEPENDANCIES["base_config"] + "/download"
         download_and_save_yaml(url, filename)
 
+
 def maybe_download_model_weights(selected_species):
     filepath = f'./assets/{selected_species.lower()}/weights.pth'
     url = EXTERNAL_DEPENDANCIES[f'{selected_species}_weights'] + '/download'
     if not os.path.exists(filepath):
         download_and_save_model_weights(url, filepath)
 
+
 def get_configuration_filepath(selected_species):
     return f'./assets/config/{selected_species}.yaml'
 
+
 def get_model_weights_filepath(selected_species):
     return f'./assets/{selected_species.lower()}/weights.pth'
+
 
 def setup_model_configuration(selected_species):
     cfg = detectron2.config.get_cfg()
@@ -101,7 +103,6 @@ def setup_model_configuration(selected_species):
     cfg.MODEL.ROI_KEYPOINT_HEAD.POOLER_RESOLUTION = (14, 14)
     cfg.merge_from_file(get_configuration_filepath(selected_species))
     cfg.MODEL.WEIGHTS = get_model_weights_filepath(selected_species)
-    # Set score_threshold for builtin models
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.0
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0
     cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = 0.0

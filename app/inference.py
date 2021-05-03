@@ -1,7 +1,9 @@
+import os
 import time
 
 import numpy as np
 
+import cv2
 import shapely
 from shapely import affinity
 import shapely.geometry as shapes
@@ -14,20 +16,26 @@ from app.image_retrieval import get_selected_image
 from inference.infer import run_on_image
 from app.example_images import setup_plot, draw_example
 from tools.state import Option_State
+from tools.constants import OPENCV_FILE_SUPPORT
 
 
 def maybe_do_inference():
     if utils.is_file_uploaded() and utils.is_mode_upload_an_example():
-        if not is_inference_available_for_uploaded_image():
-            with st.spinner("Measuring Stomata..."):
-                predictions, time_elapsed = run_on_image(get_selected_image())
-                predictions = predictions_to_list_of_dictionaries(predictions)
-                Option_State["uploaded_inference"] = {
-                    'name': Option_State['uploaded_file']['name'],
-                    'model_used': Option_State['plant_type'],
-                    'predictions': predictions,
-                }
-            st.success(f"Finished in {time_elapsed:2f}s")
+        maybe_do_single_image_inference()
+    if utils.is_image_folder_avaiable() and utils.is_mode_upload_multiple_images():
+        maybe_do_inference_on_all_images_in_folder()
+
+def maybe_do_single_image_inference():
+    if not is_inference_available_for_uploaded_image():
+        with st.spinner("Measuring Stomata..."):
+            predictions, time_elapsed = run_on_image(get_selected_image())
+            predictions = predictions_to_list_of_dictionaries(predictions)
+            Option_State["uploaded_inference"] = {
+                'name': Option_State['uploaded_file']['name'],
+                'model_used': Option_State['plant_type'],
+                'predictions': predictions,
+            }
+        st.success(f"Finished in {time_elapsed:2f}s")
 
 
 def is_inference_available_for_uploaded_image():
@@ -36,6 +44,7 @@ def is_inference_available_for_uploaded_image():
     check = is_inference_done_using_the_selected_model()
     check = check and is_inference_for_the_current_file()
     return check
+
 
 def is_inference_available():
     return not Option_State['uploaded_inference'] is None
@@ -46,10 +55,38 @@ def is_inference_for_the_current_file():
     filename_of_available_inference = Option_State['uploaded_inference']['name']
     return currently_uploaded_filename == filename_of_available_inference
 
+
 def is_inference_done_using_the_selected_model():
     currently_selected_model = Option_State['plant_type']
     model_used_for_inference = Option_State['uploaded_inference']['model_used']
     return currently_selected_model == model_used_for_inference
+
+
+def maybe_do_inference_on_all_images_in_folder():
+    total_time = 0
+    directory = Option_State['folder_path']
+    filenames = os.listdir(directory)
+    image_files = [
+        filename for filename in filenames
+        if is_supported_image_file(filename)
+    ]
+    progress = 0
+    st.write(f"Measuring {len(image_files)} images...")
+    progress_bar = st.progress(progress)
+    increment  = 100 // len(image_files)
+
+    for filename in image_files:
+        image = cv2.imread(directory + '/' + filename)
+        predictions, time_elapsed = run_on_image(image)
+        progress += increment
+        progress_bar.progress(progress)
+        st.info(f"{filename} completed in {time_elapsed:.2}s")
+        total_time += time_elapsed
+    st.success(f"Measured {len(image_files)} in {total_time:.2}s")
+
+
+def is_supported_image_file(filename):
+    return filename.split('.')[-1] in OPENCV_FILE_SUPPORT
 
 
 def predictions_to_list_of_dictionaries(predictions):

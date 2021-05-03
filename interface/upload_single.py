@@ -15,6 +15,13 @@ from tools.constants import (
 
 def display_upload_image():
     if IS_ONLINE:
+        print_unavilable_message()
+    else:
+        single_image_uploader()
+        setup_upload_sidebar()
+        
+
+def print_unavilable_message():
         message = (
             "This feature is disabled in the online version of"
             " the application. To use this functionality please"
@@ -22,17 +29,10 @@ def display_upload_image():
             " locally."
         )
         st.write(message)
-    else:
-        file_upload()
-        plant_type_selection()
-        confidence_sliderbar()
-        immature_stomata_threshold()
-        camera_calibration_textbox()
 
-
-def file_upload():
+def single_image_uploader():
     file_like_object = st.file_uploader(
-        "Upload Files", type=OPENCV_FILE_SUPPORT
+        "Upload Files", type=OPENCV_FILE_SUPPORT,
     )
     if file_like_object is not None:
         Option_State["uploaded_file"] = {
@@ -40,6 +40,12 @@ def file_upload():
             'name': file_like_object.name,
             }
 
+
+def setup_upload_sidebar():
+    plant_type_selection()
+    confidence_sliderbar()
+    immature_stomata_threshold()
+    camera_calibration_textbox()
 
 
 def camera_calibration_textbox():

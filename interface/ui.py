@@ -2,7 +2,8 @@ import streamlit as st
 
 from tools.state import Option_State
 from .landing import display_instructions
-from .upload import display_upload_image
+from .upload_single import display_upload_image
+from .upload_folder import display_upload_zip
 from .example_images import display_example_selection
 from .example_output import display_group_output_example, display_slide_output_example
 
@@ -11,6 +12,7 @@ ENABLED_MODES = [
     "View Example Images",
     "View Example Slide Output",
     "Upload An Image",
+    "Upload Multiple Images"
 ]
 
 MODE_METHODS = {
@@ -19,6 +21,7 @@ MODE_METHODS = {
     "View Example Images": display_example_selection,
     "View Example Slide Output": display_slide_output_example,
     "View Example Group Output": display_group_output_example,
+    "Upload Multiple Images": display_upload_zip,
 }
 
 
