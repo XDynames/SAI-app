@@ -18,11 +18,16 @@ def display_summary_statistics():
     column_names, column_human, column_predicted = st.beta_columns(3)
     with column_names:
         display_summary_names()
+    if utils.is_mode_upload_an_example() and Option_State['uploaded_inference'] is not None:
+        with column_predicted:
+            predictions = Option_State['uploaded_inference']['predictions']
+            display_prediction_summary_statistics(predictions)
     if not utils.is_mode_upload_an_example():
         with column_human:
             display_ground_truth_summary_statistics()
         with column_predicted:
             display_prediction_summary_statistics()
+    
 
 
 def display_summary_names():
@@ -39,8 +44,8 @@ def display_ground_truth_summary_statistics():
     calculate_and_display_summary_statistics(ground_truth)
 
 
-def display_prediction_summary_statistics():
-    predictions = get_predictions()
+def display_prediction_summary_statistics(predictions=None):
+    predictions = get_predictions() if predictions is None else predictions
     predictions = filter_low_confidence_predictions(predictions)
     st.write("Model Estimates")
     calculate_and_display_summary_statistics(predictions)
@@ -91,7 +96,10 @@ def display_average_area(annotations):
 
 def average_key(annotations, key):
     values = [annotation[key] for annotation in annotations]
-    average = sum(values) / len(values)
+    if len(values) > 0:
+        average = sum(values) / len(values)
+    else:
+        average = 0
     if is_valid_calibration():
         average /= Option_State["camera_calibration"]
     return round(average, 2)

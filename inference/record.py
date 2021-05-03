@@ -17,7 +17,7 @@ from mask_to_polygons.vectorification import geometries_from_mask
     Records predictions and ground truth pairs for an image as a JSON file
 """
 
-IOU_THRESHOLD = 0.5
+IOU_THRESHOLD = 0.2
 
 class AnnotationStore:
     def __init__(self, dir_annotations, retrieval=False):

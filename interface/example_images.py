@@ -8,6 +8,7 @@ from tools.constants import PLANT_OPTIONS, CAMERA_CALIBRATION
 def display_example_selection():
     plant_type_selection()
     image_selection()
+    immature_stomata_threshold()
     show_calibration_information()
     drawing_options()
 
@@ -23,6 +24,16 @@ def image_selection():
     Option_State["image_url_dicts"] = image_dict
     Option_State["image_name"] = st.sidebar.selectbox(
         "Select image:", [image_name for image_name in image_dict.keys()]
+    )
+
+
+def immature_stomata_threshold():
+    Option_State["minimum_stoma_length"] = st.sidebar.number_input(
+        "Immature Stomata Threshold (\u03BCm):",
+        min_value=0.0,
+        value=0.0,
+        step=10.0,
+        format="%.3f",
     )
 
 

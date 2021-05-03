@@ -9,7 +9,6 @@ from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.visualizer import ColorMode, Visualizer
 
-from inference.modeling.stoma_head import KRCNNConvHead, KPROIHeads
 from inference.post_processing import filter_invalid_predictions
 from tools.cloud_files import EXTERNAL_DEPENDANCIES
 from tools.load import download_and_save_yaml, download_and_save_model_weights
@@ -27,8 +26,8 @@ class InferenceEngine:
     def run_on_image(self, image):
         predictions = self.predictor(image)
         self._post_process_predictions(predictions)
-        vis_output = self._visualise_predictions(predictions['instances'], image)
-        return predictions, vis_output
+        #is_output = self._visualise_predictions(predictions['instances'], image)
+        return predictions#, vis_output
     
     def _post_process_predictions(self, predictions):
         instances = predictions["instances"].to(self.cpu_device)
@@ -54,9 +53,9 @@ def run_on_image(image):
     maybe_setup_inference_engine()
     start_time = time.time()
     demo = Inference_Engines[Option_State["plant_type"]]
-    predictions, visualised_output = demo.run_on_image(image)
+    predictions = demo.run_on_image(image)
     time_elapsed = time.time() - start_time
-    return predictions, visualised_output
+    return predictions['instances'], time_elapsed
 
 
 def maybe_setup_inference_engine():
@@ -65,8 +64,6 @@ def maybe_setup_inference_engine():
         setup_inference_engine(selected_species)
 
 def setup_inference_engine(selected_species):
-    st.write(f"Hey dude looks like you want to do some inference on: {selected_species}")
-
     maybe_download_config_files(selected_species)
     maybe_download_model_weights(selected_species)
     # create detectron2 config
@@ -105,11 +102,9 @@ def setup_model_configuration(selected_species):
     cfg.merge_from_file(get_configuration_filepath(selected_species))
     cfg.MODEL.WEIGHTS = get_model_weights_filepath(selected_species)
     # Set score_threshold for builtin models
-    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = Option_State['confidence_threshold']
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = Option_State['confidence_threshold']
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = (
-        Option_State['confidence_threshold']
-    )
+    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.0
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = 0.0
     cfg.MODEL.DEVICE = "cpu"
     cfg.freeze()
     return cfg

@@ -1,6 +1,10 @@
 import streamlit as st
 
-from interface.example_images import plant_type_selection, confidence_sliderbar
+from interface.example_images import (
+    plant_type_selection,
+    confidence_sliderbar,
+    immature_stomata_threshold,
+)
 from tools.load import decode_downloaded_image
 from tools.state import Option_State
 from tools.constants import (
@@ -22,7 +26,8 @@ def display_upload_image():
         file_upload()
         plant_type_selection()
         confidence_sliderbar()
-        draw_camera_calibration_textbox()
+        immature_stomata_threshold()
+        camera_calibration_textbox()
 
 
 def file_upload():
@@ -30,10 +35,14 @@ def file_upload():
         "Upload Files", type=OPENCV_FILE_SUPPORT
     )
     if file_like_object is not None:
-        Option_State["uploaded_file"] = decode_downloaded_image(file_like_object)
+        Option_State["uploaded_file"] = {
+            'image': decode_downloaded_image(file_like_object),
+            'name': file_like_object.name,
+            }
 
 
-def draw_camera_calibration_textbox():
+
+def camera_calibration_textbox():
     Option_State["camera_calibration"] = st.sidebar.number_input(
         "Camera Calibration (px/\u03BCm):",
         min_value=0.0,

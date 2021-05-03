@@ -9,8 +9,10 @@ Option_State = {
     "draw_masks": True,
     "draw_keypoints": True,
     "uploaded_file": None,
+    "uploaded_inference": None,
     "confidence_threshold": 0.5,
     "image_size": None,
     "image_area": 0.0,
     "camera_calibration": None,
+    'minimum_stoma_length': 0.0,
 }

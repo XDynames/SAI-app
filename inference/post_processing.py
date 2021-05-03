@@ -1,3 +1,4 @@
+import streamlit as st
 from inference.record import is_overlapping
 
 CLOSE_TO_EDGE_DISTANCE = 20
@@ -20,12 +21,13 @@ def remove_intersecting_predictions(predictions):
             if not i == j and is_overlapping(bbox_i, bbox_j)
         ]
         is_larger = [
-            predictions.scores[i].item() >= predictions.scores[j].item()
+            predictions.scores[i].item() > predictions.scores[j].item()
             for j in intersecting
         ]
-        if all(is_larger) or not intersecting:
+        if not intersecting:
             final_indices.append(i)
-    
+        elif len(is_larger) > 0 and all(is_larger):
+            final_indices.append(i)
     select_predictions(predictions, final_indices)
 
 
@@ -34,6 +36,7 @@ def select_predictions(predictions, indices):
     predictions.pred_classes = predictions.pred_classes[indices]
     predictions.pred_masks = predictions.pred_masks[indices]
     predictions.pred_keypoints = predictions.pred_keypoints[indices]
+    predictions.scores = predictions.scores[indices]
 
 
 def remove_close_to_edge_detections(predictions):

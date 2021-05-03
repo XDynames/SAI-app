@@ -13,19 +13,21 @@ is_setup = False
 
 def main():
     ui.setup()
+    maybe_do_inference()
     maybe_draw_example()
     maybe_display_summary_statistics()
     maybe_show_slide_output_example()
-    maybe_do_inference()
 
 
 if __name__ == "__main__":
-    maybe_create_folders()
-    st.set_page_config(
-        page_title="SAI - StomAI",
-        page_icon=":purple_circle:",
-        layout="centered",
-        initial_sidebar_state="expanded",
-    )
+    if not is_setup:
+        maybe_create_folders()
+        st.set_page_config(
+            page_title="SAI - StomAI",
+            page_icon=":purple_circle:",
+            layout="centered",
+            initial_sidebar_state="expanded",
+        )
+        from inference.modeling.stoma_head import KRCNNConvHead, KPROIHeads
 
     main()
