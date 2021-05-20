@@ -20,7 +20,6 @@ class InferenceEngine:
     def __init__(self, model_config):
         self.metadata = MetadataCatalog.get(model_config.DATASETS.TEST[0])
         self.instance_mode = ColorMode.IMAGE
-        self.cpu_device = torch.device("cpu")
         self.predictor = DefaultPredictor(model_config)
     
     def run_on_image(self, image):
@@ -29,7 +28,7 @@ class InferenceEngine:
         return predictions
     
     def _post_process_predictions(self, predictions):
-        instances = predictions["instances"].to(self.cpu_device)
+        instances = predictions["instances"].to(torch.device("cpu"))
         filter_invalid_predictions(instances)
         predictions['instances'] = instances
     
@@ -77,7 +76,7 @@ def maybe_download_config_files(selected_species):
         download_and_save_yaml(url, filename)
     
     if not os.path.exists('./assets/config/Base-RCNN-FPN.yaml'):
-        filename = get_model_weights_filepath(selected_species)
+        filename = get_configuration_filepath('Base-RCNN-FPN')
         url = EXTERNAL_DEPENDANCIES["base_config"] + "/download"
         download_and_save_yaml(url, filename)
 
@@ -106,6 +105,9 @@ def setup_model_configuration(selected_species):
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.0
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0
     cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = 0.0
-    cfg.MODEL.DEVICE = "cpu"
+    if torch.cuda.is_available():
+        cfg.MODEL.DEVICE = "cuda"
+    else:
+        cfg.MODEL.DEVICE = "cpu"
     cfg.freeze()
     return cfg

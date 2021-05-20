@@ -1,5 +1,5 @@
 import os
-import time
+import json
 
 import numpy as np
 
@@ -78,15 +78,25 @@ def maybe_do_inference_on_all_images_in_folder():
     for filename in image_files:
         image = cv2.imread(directory + '/' + filename)
         predictions, time_elapsed = run_on_image(image)
+        record_predictions(predictions, filename)
         progress += increment
         progress_bar.progress(progress)
-        st.info(f"{filename} completed in {time_elapsed:.2}s")
+        st.info(f"{filename} completed in {time_elapsed:.2f}s")
         total_time += time_elapsed
-    st.success(f"Measured {len(image_files)} in {total_time:.2}s")
+    st.success(f"Measured {len(image_files)} in {total_time:.2f}s")
+    saved_filename = create_output_csv()
+    st.success(f"Measurements saved as ./output/{saved_filename}")
 
 
 def is_supported_image_file(filename):
     return filename.split('.')[-1] in OPENCV_FILE_SUPPORT
+
+
+def record_predictions(predictions, filename):
+    path = './output/temp/'
+    predictions = predictions_to_list_of_dictionaries(predictions)
+    with open(path + ".".join([filename[:-4], "json"]), "w") as file:
+        json.dump({"detections": predictions}, file)
 
 
 def predictions_to_list_of_dictionaries(predictions):
@@ -229,3 +239,71 @@ def extract_polygon_AB(x_values, y_values):
 def l2_dist(keypoints):
     A, B = [keypoints[0], keypoints[1]], [keypoints[3], keypoints[4]]
     return pow((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2, 0.5)
+
+
+def create_output_csv():
+    predictions = load_all_saved_predictions()
+    predictions = format_predictions(predictions)
+    return write_to_csv(predictions)
+
+
+def load_all_saved_predictions():
+    directory = './output/temp/'
+    files = os.listdir(directory)
+    image_detections = []
+    for file in files:
+        if not file[-4:] == "json":
+            continue
+        with open(os.path.join(directory, file), "r") as read_file:
+            image_data = json.load(read_file)
+            image_data["image_name"] = file[:-5]
+            image_detections.append(image_data)
+    return image_detections
+
+
+def format_predictions(predictions):
+    stoma_measurements = []
+    for prediction in predictions:
+        image_name = prediction["image_name"]
+        detections = prediction["detections"]
+        for detection in detections:
+            measurements = {
+                "width": detection["width"],
+                "length": detection["length"],
+                "area": detection["area"],
+                "class": 'open' if detection["category_id"] else 'closed',
+                "confidence": detection["confidence"],
+                "image_name": image_name,
+            }
+            stoma_measurements.append(measurements)
+    return stoma_measurements
+
+def write_to_csv(measurments):
+    column_names = [
+        "id",
+        "image_name",
+        "pred_class",
+        "pred_length",
+        "pred_width",
+        "pred_area",
+        "confidence",
+    ]
+    column_keys = ["image_name", "class", "length", "width", "area", "confidence"]
+    csv = ",".join(column_names) + "\n"
+
+    for i, measurment in enumerate(measurments):
+        values = [i]
+        for stoma_property in column_keys:
+            values.append(measurment[stoma_property])
+        values = [str(x) for x in values]
+        csv += ",".join(values) + "\n"
+    
+    path = Option_State['folder_path']
+    if os.path.basename(path) == '':
+        directory_name = os.path.basename(os.path.dirname(path))
+    else:
+        directory_name = os.path.basename(path)
+    filename = f'{directory_name}.csv'
+    with open(f'./output/{filename}', "w") as file:
+        file.write(csv)
+    return filename

@@ -114,7 +114,9 @@ def maybe_create_folders():
     if not os.path.exists("./assets/"):
         create_asset_folders()
     if not os.path.exists("./output/"):
-        create_output_folder()
+        create_output_folders()
+    else:
+        clean_temporary_folder()
 
 
 def create_asset_folders():
@@ -124,9 +126,16 @@ def create_asset_folders():
     os.mkdir("./assets/config/")
 
 
-def create_output_folder():
+def create_output_folders():
     os.mkdir("./output/")
+    os.mkdir("./output/temp/")
 
+
+def clean_temporary_folder():
+    path = './output/temp/'
+    files = os.listdir(path)
+    for file in files:
+        os.remove(path + file)
 
 
 if __name__ == "__main__":
