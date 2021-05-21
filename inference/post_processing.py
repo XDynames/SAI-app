@@ -1,9 +1,7 @@
-import streamlit as st
-from inference.record import is_overlapping
-
 CLOSE_TO_EDGE_DISTANCE = 20
 CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.7
 SIZE_THRESHOLD = 0.3
+IOU_THRESHOLD = 0.2
 
 
 def filter_invalid_predictions(predictions):
@@ -29,6 +27,39 @@ def remove_intersecting_predictions(predictions):
         elif len(is_larger) > 0 and all(is_larger):
             final_indices.append(i)
     select_predictions(predictions, final_indices)
+
+
+def is_overlapping(bbox1, bbox2):
+    if intersects(bbox1, bbox2):
+        return overlaps(bbox1, bbox2)
+    return False
+
+    
+def intersects(bbox_1, bbox_2):
+    is_overlap = not (
+        bbox_2[0] > bbox_1[2]
+        or bbox_2[2] < bbox_1[0]
+        or bbox_2[1] > bbox_1[3]
+        or bbox_2[3] < bbox_1[1]
+    )
+    return is_overlap
+
+
+def overlaps(bbox_1, bbox_2):
+    iou = intersection_over_union(bbox_1, bbox_2)
+    if iou > IOU_THRESHOLD:
+        return True
+    return False
+
+def intersection_over_union(bbox, bbox_2):
+    x_max, y_max = max(bbox[0], bbox_2[0]), max(bbox[1], bbox_2[1])
+    x_min, y_min = min(bbox[2], bbox_2[2]), min(bbox[3], bbox_2[3])
+    intersecting_area = max(0, x_min - x_max + 1) * max(0, y_min - y_max + 1)
+
+    pred_area = (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1)
+    gt_area = (bbox_2[2] - bbox_2[0] + 1) * (bbox_2[3] - bbox_2[1] + 1)
+    iou = intersecting_area / float(pred_area + gt_area - intersecting_area)
+    return iou
 
 
 def select_predictions(predictions, indices):

@@ -1,15 +1,15 @@
+import base64
 import os
 import json
 
-import numpy as np
-
 import cv2
-import shapely
-from shapely import affinity
+import pandas as pd
+import numpy as np
 import shapely.geometry as shapes
 import streamlit as st
-from rasterio.transform import IDENTITY
 from mask_to_polygons.vectorification import geometries_from_mask
+from shapely import affinity
+from rasterio.transform import IDENTITY
 
 from app import utils
 from app.image_retrieval import get_selected_image
@@ -74,6 +74,7 @@ def maybe_do_inference_on_all_images_in_folder():
     st.write(f"Measuring {len(image_files)} images...")
     progress_bar = st.progress(progress)
     increment  = 100 // len(image_files)
+    status_container = st.empty()
 
     for filename in image_files:
         image = cv2.imread(directory + '/' + filename)
@@ -81,11 +82,13 @@ def maybe_do_inference_on_all_images_in_folder():
         record_predictions(predictions, filename)
         progress += increment
         progress_bar.progress(progress)
-        st.info(f"{filename} completed in {time_elapsed:.2f}s")
+        with status_container:
+            st.info(f"{filename} completed in {time_elapsed:.2f}s")
         total_time += time_elapsed
-    st.success(f"Measured {len(image_files)} in {total_time:.2f}s")
+    with status_container:
+        st.success(f"Measured {len(image_files)} images in {total_time:.2f}s")
     saved_filename = create_output_csv()
-    st.success(f"Measurements saved as ./output/{saved_filename}")
+    display_download_link(saved_filename)
 
 
 def is_supported_image_file(filename):
@@ -304,6 +307,12 @@ def write_to_csv(measurments):
     else:
         directory_name = os.path.basename(path)
     filename = f'{directory_name}.csv'
-    with open(f'./output/{filename}', "w") as file:
+    with open(f'./output/temp/{filename}', "w") as file:
         file.write(csv)
     return filename
+
+
+def display_download_link(temp_csv_name):
+    dataframe = pd.read_csv('./output/temp/' + temp_csv_name)
+    coded_data = base64.b64encode(dataframe.to_csv(index=False).encode()).decode()
+    st.markdown(f'<a href="data:file/csv;base64,{coded_data}" download="{temp_csv_name}">Download Measurements</a>', unsafe_allow_html=True)

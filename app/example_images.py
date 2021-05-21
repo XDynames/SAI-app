@@ -44,7 +44,6 @@ def draw_annotations_on_image(ax):
         draw_predictions(ax)
     if Option_State["draw_ground_truth"] and utils.is_mode_view_examples():
         draw_ground_truth(ax)
-    # Add Resize here
     if utils.is_mode_upload_an_example():
         maybe_draw_predictions(ax)
         draw.legend(ax, False)
@@ -77,7 +76,7 @@ def filter_immature_stomata(predictions):
 
 
 def get_pixel_to_micron_conversion_factor():
-    if not utils.is_file_uploaded():
+    if utils.is_mode_view_examples():
         pixels_per_micron = CAMERA_CALIBRATION[Option_State['plant_type']]
     else:
         pixels_per_micron = Option_State['camera_calibration']
