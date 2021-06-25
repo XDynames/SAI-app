@@ -1,7 +1,15 @@
+import os
+import json
+
+from scipy.stats import iqr
+import streamlit as st
+import numpy as np
+
 CLOSE_TO_EDGE_DISTANCE = 20
-CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.7
+CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.85
 SIZE_THRESHOLD = 0.3
 IOU_THRESHOLD = 0.2
+Predicted_Lengths = []
 
 
 def filter_invalid_predictions(predictions):
@@ -97,7 +105,7 @@ def calculate_bbox_area(bbox):
     return width * height
 
 
-def is_bbox_near_edge(bbox, image_width, image_height):
+def is_bbox_near_edge(bbox, image_height, image_width):
     x1, y1, x2, y2 = bbox    
     is_near_edge = any([
         x1 < CLOSE_TO_EDGE_DISTANCE,
@@ -125,3 +133,64 @@ def remove_extremley_small_detections(predictions):
 
 def is_bbox_extremley_small(bbox, average_area):
     return calculate_bbox_area(bbox) < average_area * SIZE_THRESHOLD
+
+
+def remove_outliers_from_records():
+    path = './output/temp/'
+    for filename in os.listdir(path):
+        if ".json" in filename:
+            if "-gt" in filename:
+                continue
+            filepath = os.path.join(path, filename)
+            record = load_json(filepath)
+            predictions = record['detections']
+            length_predictions = extract_lengths(predictions)
+            remove_outliers(length_predictions, predictions)
+            write_to_json(predictions, filepath)
+
+
+def load_json(filepath):
+    with open(filepath, "r") as file:
+        record = json.load(file)
+    return record
+
+
+def unpack_predictions(record):
+    predictions = []
+    for detection in record:
+        predictions.append(detection['pred'])
+    return predictions
+
+
+def extract_lengths(predictions):
+    lengths = []
+    for prediction in predictions:
+        lengths.append(prediction['length'])
+    return lengths
+
+
+def remove_outliers(lengths, record):
+    to_remove = find_outlier_indices(lengths)
+    for index in reversed(to_remove):
+        record.pop(index)
+
+
+def find_outlier_indices(lengths):
+    to_remove = []
+    lower_bound = calculate_length_limit()
+    for i, length in enumerate(lengths):
+        if length < lower_bound:
+            to_remove.append(i)
+    return to_remove
+
+
+def calculate_length_limit():
+    inter_quartile_range = iqr(Predicted_Lengths, interpolation='midpoint')
+    median = np.median(Predicted_Lengths)
+    lower_whisker = median -  2.0 * inter_quartile_range
+    return lower_whisker
+
+
+def write_to_json(record, filepath):
+    with open(filepath, "w") as file:
+        json.dump({"detections": record}, file)

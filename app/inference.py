@@ -14,10 +14,12 @@ from rasterio.transform import IDENTITY
 from app import utils
 from app.image_retrieval import get_selected_image
 from inference.infer import run_on_image
+from inference.post_processing import remove_outliers_from_records, Predicted_Lengths
 from app.example_images import setup_plot, draw_example
 from tools.state import Option_State
 from tools.constants import OPENCV_FILE_SUPPORT
 
+MINIMUM_LENGTH = 5
 
 def maybe_do_inference():
     if utils.is_file_uploaded() and utils.is_mode_upload_an_example():
@@ -64,6 +66,7 @@ def is_inference_done_using_the_selected_model():
 
 def maybe_do_inference_on_all_images_in_folder():
     total_time = 0
+    Predicted_Lengths = []
     directory = Option_State['folder_path']
     filenames = os.listdir(directory)
     image_files = [
@@ -87,6 +90,7 @@ def maybe_do_inference_on_all_images_in_folder():
         total_time += time_elapsed
     with status_container:
         st.success(f"Measured {len(image_files)} images in {total_time:.2f}s")
+    remove_outliers_from_records()
     saved_filename = create_output_csv()
     display_download_link(saved_filename)
 
@@ -118,7 +122,7 @@ def predictions_to_dictionary(i, predictions):
     if pred_class == 1:
         # Processes prediction mask
         pred_polygon = mask_to_poly(pred_mask)
-        pred_CD = find_CD(pred_polygon, gt=False)
+        pred_CD = find_CD(pred_polygon)
         pred_width = l2_dist(pred_CD)
         pred_area = pred_mask.sum().item()
     else:
@@ -126,18 +130,26 @@ def predictions_to_dictionary(i, predictions):
         pred_CD = [-1, -1, 1.0 - 1, -1, 1]
         pred_width = 0
         pred_area = 0
+    
+    pred_length = l2_dist(pred_AB)
+    if pred_length < MINIMUM_LENGTH and pred_polygon:
+        x_points = [x for x in pred_polygon[0::2]]
+        y_points = [y for y in pred_polygon[1::2]]
+        pred_AB = extract_polygon_AB(x_points, y_points)
+        pred_length = l2_dist(pred_AB)
 
     prediction_dict = {
         "bbox": predictions.pred_boxes[i].tensor.tolist()[0],
         "area": pred_area,
         "AB_keypoints": pred_AB,
-        "length": l2_dist(pred_AB),
+        "length": pred_length,
         "CD_keypoints": pred_CD,
         "width": pred_width,
         "category_id": pred_class,
         "segmentation": [pred_polygon],
         "confidence": predictions.scores[i].item(),
     }
+    Predicted_Lengths.append(pred_length)
     return prediction_dict
 
 
@@ -145,14 +157,35 @@ def mask_to_poly(mask):
     if mask.sum() == 0:
         return []
     poly = geometries_from_mask(np.uint8(mask), IDENTITY, "polygons")
-    poly = poly[0]["coordinates"][0]
-    flat_poly = []
-    for point in poly:
-        flat_poly.extend([point[0], point[1]])
-    return flat_poly
+    if len(poly) > 1:
+        poly = find_maximum_area_polygon(poly)
+    else:
+        poly = poly[0]
+    poly = poly["coordinates"][0]
+    return flatten_polygon(poly)
 
 
-def find_CD(polygon, keypoints=None, gt=True):
+def find_maximum_area_polygon(polygons):
+    maximum = 0
+    index = 0
+    for i, polygon in enumerate(polygons):
+        try:
+            polygon = shapely.geometry.Polygon(polygon['coordinates'][0])
+        except:
+            continue
+        if polygon.area > maximum:
+            maximum = polygon.area
+            index = i
+    return polygons[index]
+
+def flatten_polygon(polygon):
+    flat_polygon = []
+    for point in polygon:
+        flat_polygon.extend([point[0], point[1]])
+    return flat_polygon
+
+
+def find_CD(polygon, keypoints=None):
     # If no mask is predicted
     if len(polygon) < 1:
         #    counter += 1
