@@ -14,6 +14,7 @@ from tools.cloud_files import EXTERNAL_DEPENDANCIES
 from tools.load import download_and_save_yaml, download_and_save_model_weights
 from tools.state import Option_State
 
+BASE_CONFIDENCE_THRESHOLD = 0.5
 Inference_Engines = {'Barley': None, 'Arabidopsis': None}
 
 class InferenceEngine:
@@ -102,9 +103,11 @@ def setup_model_configuration(selected_species):
     cfg.MODEL.ROI_KEYPOINT_HEAD.POOLER_RESOLUTION = (14, 14)
     cfg.merge_from_file(get_configuration_filepath(selected_species))
     cfg.MODEL.WEIGHTS = get_model_weights_filepath(selected_species)
-    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.0
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = 0.0
+    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = BASE_CONFIDENCE_THRESHOLD
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = BASE_CONFIDENCE_THRESHOLD
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = (
+        BASE_CONFIDENCE_THRESHOLD 
+    )
     if torch.cuda.is_available():
         cfg.MODEL.DEVICE = "cuda"
     else:

@@ -1,6 +1,7 @@
 import base64
 import os
 import json
+import math
 
 import cv2
 import pandas as pd
@@ -74,7 +75,9 @@ def maybe_do_inference_on_all_images_in_folder():
         if is_supported_image_file(filename)
     ]
     progress = 0
-    st.write(f"Measuring {len(image_files)} images...")
+    progress_bar_header = st.empty()
+    with progress_bar_header:
+        st.write(f"Measuring {len(image_files)} images...")
     progress_bar = st.progress(progress)
     increment  = 100 // len(image_files)
     status_container = st.empty()
@@ -83,16 +86,27 @@ def maybe_do_inference_on_all_images_in_folder():
         image = cv2.imread(directory + '/' + filename)
         predictions, time_elapsed = run_on_image(image)
         record_predictions(predictions, filename)
+
         progress += increment
         progress_bar.progress(progress)
+
         with status_container:
             st.info(f"{filename} completed in {time_elapsed:.2f}s")
+        
         total_time += time_elapsed
+    
+    progress_bar.progress(100)
+    progress_bar.empty()
+    progress_bar_header.empty()
     with status_container:
         st.success(f"Measured {len(image_files)} images in {total_time:.2f}s")
+    
     remove_outliers_from_records()
+    # User confidence filtering
+    # Length Unit Conversion + Immature filtering
     saved_filename = create_output_csv()
     display_download_link(saved_filename)
+    # Visualise button?
 
 
 def is_supported_image_file(filename):
