@@ -15,5 +15,6 @@ Option_State = {
     "image_area": 0.0,
     "camera_calibration": None,
     'minimum_stoma_length': 0.0,
-    "folder_path": "",
+    "folder_path": '',
+    "folder_inference": None,
 }

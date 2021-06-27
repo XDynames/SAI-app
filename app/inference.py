@@ -42,14 +42,14 @@ def maybe_do_single_image_inference():
 
 
 def is_inference_available_for_uploaded_image():
-    if not is_inference_available():
+    if not is_upload_inference_available():
         return False
     check = is_inference_done_using_the_selected_model()
     check = check and is_inference_for_the_current_file()
     return check
 
 
-def is_inference_available():
+def is_upload_inference_available():
     return not Option_State['uploaded_inference'] is None
 
 
@@ -66,6 +66,40 @@ def is_inference_done_using_the_selected_model():
 
 
 def maybe_do_inference_on_all_images_in_folder():
+    if not is_inference_available_for_folder():
+        do_inference_on_all_images_in_folder()
+    # User confidence filtering
+    # Length Unit Conversion + Immature filtering
+    # Visualise button?
+    saved_filename = create_output_csv()
+    display_download_link(saved_filename)
+
+
+def is_inference_available_for_folder():
+    if not is_folder_inference_available():
+        return False
+    check = is_folder_inference_done_using_the_selected_model()
+    check = check and is_inference_for_the_current_folder()
+    return check
+
+
+def is_folder_inference_available():
+    return not Option_State['folder_inference'] is None
+
+
+def is_inference_for_the_current_folder():
+    current_folder = Option_State['folder_path']
+    available_inference = Option_State['folder_inference']['name']
+    return current_folder == available_inference
+
+
+def is_folder_inference_done_using_the_selected_model():
+    currently_selected_model = Option_State['plant_type']
+    model_used_for_inference = Option_State['folder_inference']['model_used']
+    return currently_selected_model == model_used_for_inference
+
+
+def do_inference_on_all_images_in_folder():
     total_time = 0
     Predicted_Lengths = []
     directory = Option_State['folder_path']
@@ -102,11 +136,12 @@ def maybe_do_inference_on_all_images_in_folder():
         st.success(f"Measured {len(image_files)} images in {total_time:.2f}s")
     
     remove_outliers_from_records()
-    # User confidence filtering
-    # Length Unit Conversion + Immature filtering
-    saved_filename = create_output_csv()
-    display_download_link(saved_filename)
-    # Visualise button?
+    Option_State['folder_inference'] = {
+        'name': Option_State['folder_path'],
+        'model_used': Option_State['plant_type'],
+        'predictions': load_all_saved_predictions(),
+    }
+
 
 
 def is_supported_image_file(filename):
