@@ -324,6 +324,7 @@ def format_predictions(predictions):
                 "class": 'open' if detection["category_id"] else 'closed',
                 "confidence": detection["confidence"],
                 "image_name": image_name,
+                "width/length": detection["width"] / detection["length"]
             }
             stoma_measurements.append(measurements)
     return stoma_measurements
@@ -332,13 +333,18 @@ def write_to_csv(measurments):
     column_names = [
         "id",
         "image_name",
-        "pred_class",
-        "pred_length",
-        "pred_width",
-        "pred_area",
+        "class",
+        "length",
+        "width",
+        "area",
+        "width/length",
         "confidence",
     ]
-    column_keys = ["image_name", "class", "length", "width", "area", "confidence"]
+    column_keys = [
+        "image_name", "class", "length",
+        "width", "area", "width/length",
+        "confidence",
+    ]
     csv = ",".join(column_names) + "\n"
 
     for i, measurment in enumerate(measurments):
