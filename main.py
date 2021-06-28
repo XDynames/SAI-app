@@ -8,7 +8,7 @@ from app.example_output import maybe_show_slide_output_example
 from app.inference import maybe_do_inference
 from app.summary_statistics import maybe_display_summary_statistics
 
-is_setup = False
+Is_Setup = False
 
 
 def main():
@@ -20,7 +20,8 @@ def main():
 
 
 if __name__ == "__main__":
-    if not is_setup:
+    if not Is_Setup:
+        # Current this runs each time a setting is changed
         maybe_create_folders()
         st.set_page_config(
             page_title="SAI - StomAI",
@@ -29,5 +30,6 @@ if __name__ == "__main__":
             initial_sidebar_state="expanded",
         )
         from inference.modeling.stoma_head import KRCNNConvHead, KPROIHeads
+        Is_Setup = True
 
     main()

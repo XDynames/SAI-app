@@ -14,11 +14,19 @@ from rasterio.transform import IDENTITY
 
 from app import utils
 from app.image_retrieval import get_selected_image
+from app.summary_statistics import is_valid_calibration
+from interface.upload_single import convert_to_SIU_length
 from inference.infer import run_on_image
 from inference.post_processing import remove_outliers_from_records, Predicted_Lengths
-from app.example_images import setup_plot, draw_example
-from tools.state import Option_State
+from app.example_images import (
+    setup_plot,
+    draw_example,
+    filter_low_confidence_predictions,
+    filter_immature_stomata
+)
 from tools.constants import OPENCV_FILE_SUPPORT
+from tools.load import clean_temporary_folder
+from tools.state import Option_State
 
 MINIMUM_LENGTH = 5
 
@@ -67,7 +75,10 @@ def is_inference_done_using_the_selected_model():
 
 def maybe_do_inference_on_all_images_in_folder():
     if not is_inference_available_for_folder():
+        clean_temporary_folder()
         do_inference_on_all_images_in_folder()
+    reset_predictions()
+    apply_user_settings()
     # User confidence filtering
     # Length Unit Conversion + Immature filtering
     # Visualise button?
@@ -141,7 +152,6 @@ def do_inference_on_all_images_in_folder():
         'model_used': Option_State['plant_type'],
         'predictions': load_all_saved_predictions(),
     }
-
 
 
 def is_supported_image_file(filename):
@@ -326,8 +336,46 @@ def l2_dist(keypoints):
     return pow((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2, 0.5)
 
 
+def reset_predictions():
+    Option_State['folder_inference']['predictions'] =  load_all_saved_predictions()
+
+
+def apply_user_settings():
+    apply_confidence_filter()
+    apply_immature_stoma_filter()
+    maybe_convert_length_measurement_units()
+
+
+def apply_confidence_filter():
+    apply_function(filter_low_confidence_predictions)
+
+
+def apply_immature_stoma_filter():
+    apply_function(filter_immature_stomata)
+
+
+def apply_function(function):
+    predictions = Option_State['folder_inference']['predictions']
+    filtered = []
+    for i, image in enumerate(predictions):
+        image_predictions = image["detections"]
+        image_predictions = function(image_predictions)
+        predictions[i]['detections'] = image_predictions
+
+def maybe_convert_length_measurement_units():
+    if is_valid_calibration():
+        apply_function(convert_measurements)
+
+
+def convert_measurements(predictions):
+    for prediction in predictions:
+        prediction['width'] = convert_to_SIU_length(prediction['width'])
+        prediction['length'] = convert_to_SIU_length(prediction['length'])
+    return predictions
+
+
 def create_output_csv():
-    predictions = load_all_saved_predictions()
+    predictions = Option_State['folder_inference']['predictions']
     predictions = format_predictions(predictions)
     return write_to_csv(predictions)
 
@@ -359,7 +407,7 @@ def format_predictions(predictions):
                 "class": 'open' if detection["category_id"] else 'closed',
                 "confidence": detection["confidence"],
                 "image_name": image_name,
-                "width/length": detection["width"] / detection["length"]
+                "width/length": detection["width"] / detection["length"],
             }
             stoma_measurements.append(measurements)
     return stoma_measurements

@@ -115,8 +115,6 @@ def maybe_create_folders():
         create_asset_folders()
     if not os.path.exists("./output/"):
         create_output_folders()
-    else:
-        clean_temporary_folder()
 
 
 def create_asset_folders():
