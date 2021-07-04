@@ -11,6 +11,7 @@ import numpy as np
 import streamlit as st
 
 from .cloud_files import IMAGE_DICTS
+from .state import Option_State
 
 
 @st.cache(show_spinner=True)
@@ -134,6 +135,12 @@ def clean_temporary_folder():
     files = os.listdir(path)
     for file in files:
         os.remove(path + file)
+
+
+def maybe_create_visualisation_folder():
+    visualisation_path = Option_State['visualisation_path']
+    if not os.path.exists(visualisation_path):
+        os.makedirs(visualisation_path)
 
 
 if __name__ == "__main__":

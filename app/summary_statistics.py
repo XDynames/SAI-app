@@ -27,7 +27,6 @@ def display_summary_statistics():
             display_ground_truth_summary_statistics()
         with column_predicted:
             display_prediction_summary_statistics()
-    
 
 
 def display_summary_names():

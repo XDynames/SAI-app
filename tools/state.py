@@ -17,4 +17,6 @@ Option_State = {
     'minimum_stoma_length': 0.0,
     "folder_path": '',
     "folder_inference": None,
+    "visualisation_path": None,
+    "visualise": False
 }

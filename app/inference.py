@@ -1,7 +1,7 @@
+from app.annotation_retrieval import load_predictions
 import base64
 import os
 import json
-import math
 
 import cv2
 import pandas as pd
@@ -16,25 +16,37 @@ from app import utils
 from app.image_retrieval import get_selected_image
 from app.summary_statistics import is_valid_calibration
 from interface.upload_single import convert_to_SIU_length
+from interface.upload_folder import (
+    show_download_csv_button,
+    show_save_visualisations_options
+)
 from inference.infer import run_on_image
-from inference.post_processing import remove_outliers_from_records, Predicted_Lengths
+from inference.post_processing import (
+    remove_outliers_from_records,
+    Predicted_Lengths
+)
 from app.example_images import (
-    setup_plot,
-    draw_example,
+    draw_predictions,
     filter_low_confidence_predictions,
-    filter_immature_stomata
+    filter_immature_stomata,
+    setup_plot
 )
 from tools.constants import OPENCV_FILE_SUPPORT
-from tools.load import clean_temporary_folder
+from tools.load import (
+    clean_temporary_folder,
+    maybe_create_visualisation_folder
+)
 from tools.state import Option_State
 
 MINIMUM_LENGTH = 5
+
 
 def maybe_do_inference():
     if utils.is_file_uploaded() and utils.is_mode_upload_an_example():
         maybe_do_single_image_inference()
     if utils.is_image_folder_avaiable() and utils.is_mode_upload_multiple_images():
         maybe_do_inference_on_all_images_in_folder()
+
 
 def maybe_do_single_image_inference():
     if not is_inference_available_for_uploaded_image():
@@ -79,11 +91,10 @@ def maybe_do_inference_on_all_images_in_folder():
         do_inference_on_all_images_in_folder()
     reset_predictions()
     apply_user_settings()
-    # User confidence filtering
-    # Length Unit Conversion + Immature filtering
-    # Visualise button?
     saved_filename = create_output_csv()
     display_download_link(saved_filename)
+    display_visualisation_options()
+    maybe_visualise_and_save()
 
 
 def is_inference_available_for_folder():
@@ -112,19 +123,14 @@ def is_folder_inference_done_using_the_selected_model():
 
 def do_inference_on_all_images_in_folder():
     total_time = 0
-    Predicted_Lengths = []
     directory = Option_State['folder_path']
-    filenames = os.listdir(directory)
-    image_files = [
-        filename for filename in filenames
-        if is_supported_image_file(filename)
-    ]
+    image_files = get_list_of_images_in_folder(directory)
     progress = 0
     progress_bar_header = st.empty()
     with progress_bar_header:
         st.write(f"Measuring {len(image_files)} images...")
     progress_bar = st.progress(progress)
-    increment  = 100 // len(image_files)
+    increment = 100 // len(image_files)
     status_container = st.empty()
 
     for filename in image_files:
@@ -152,6 +158,15 @@ def do_inference_on_all_images_in_folder():
         'model_used': Option_State['plant_type'],
         'predictions': load_all_saved_predictions(),
     }
+
+
+def get_list_of_images_in_folder(folder_path):
+    filenames = os.listdir(folder_path)
+    image_files = [
+        filename for filename in filenames
+        if is_supported_image_file(filename)
+    ]
+    return image_files
 
 
 def is_supported_image_file(filename):
@@ -237,6 +252,7 @@ def find_maximum_area_polygon(polygons):
             index = i
     return polygons[index]
 
+
 def flatten_polygon(polygon):
     flat_polygon = []
     for point in polygon:
@@ -253,7 +269,7 @@ def find_CD(polygon, keypoints=None):
     x_points = [x for x in polygon[0::2]]
     y_points = [y for y in polygon[1::2]]
 
-    if keypoints == None:
+    if keypoints is None:
         keypoints = extract_polygon_AB(x_points, y_points)
     # Convert to shapely linear ring
     polygon = [[x, y] for x, y in zip(x_points, y_points)]
@@ -337,7 +353,7 @@ def l2_dist(keypoints):
 
 
 def reset_predictions():
-    Option_State['folder_inference']['predictions'] =  load_all_saved_predictions()
+    Option_State['folder_inference']['predictions'] = load_all_saved_predictions()
 
 
 def apply_user_settings():
@@ -356,11 +372,11 @@ def apply_immature_stoma_filter():
 
 def apply_function(function):
     predictions = Option_State['folder_inference']['predictions']
-    filtered = []
     for i, image in enumerate(predictions):
         image_predictions = image["detections"]
         image_predictions = function(image_predictions)
         predictions[i]['detections'] = image_predictions
+
 
 def maybe_convert_length_measurement_units():
     if is_valid_calibration():
@@ -412,6 +428,7 @@ def format_predictions(predictions):
             stoma_measurements.append(measurements)
     return stoma_measurements
 
+
 def write_to_csv(measurments):
     column_names = [
         "id",
@@ -450,5 +467,57 @@ def write_to_csv(measurments):
 
 def display_download_link(temp_csv_name):
     dataframe = pd.read_csv('./output/temp/' + temp_csv_name)
-    coded_data = base64.b64encode(dataframe.to_csv(index=False).encode()).decode()
-    st.markdown(f'<a href="data:file/csv;base64,{coded_data}" download="{temp_csv_name}">Download Measurements</a>', unsafe_allow_html=True)
+    show_download_csv_button(dataframe, temp_csv_name)
+
+
+def display_visualisation_options():
+    show_save_visualisations_options()
+
+
+def maybe_visualise_and_save():
+    if Option_State['visualise']:
+        maybe_create_visualisation_folder()
+        visualise_and_save()
+        Option_State['visualise'] = False
+
+
+def visualise_and_save():
+    visualisation_folder = Option_State['visualisation_path']
+    image_folder = Option_State['folder_path']
+    image_names = get_list_of_images_in_folder(image_folder)
+
+    status_container = st.empty()
+    progress = 0
+    progress_bar_header = st.empty()
+    with progress_bar_header:
+        st.write(f"Visualising {len(image_names)} images...")
+    progress_bar = st.progress(progress)
+    increment = 100 // len(image_names)
+
+    for image_name in image_names:
+        # Load image
+        image = cv2.imread(os.path.join(image_folder, image_name))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # Create matplot lib axis
+        fig, ax = setup_plot(image)
+        # Load images measurements
+        predictions_filename = image_name.split('.')[0] + '.json'
+        prediction_path = os.path.join('./output/temp/', predictions_filename)
+        predictions = utils.load_json(prediction_path)['detections']
+        # Draw onto axis
+        draw_predictions(ax, predictions)
+        # Save drawing
+        fig.savefig(
+            os.path.join(visualisation_folder, image_name),
+            dpi=400,
+            bbox_inches = 'tight',
+            pad_inches = 0
+        )
+        progress += increment
+        progress_bar.progress(progress)
+    
+    progress_bar.progress(100)
+    progress_bar.empty()
+    progress_bar_header.empty()
+    with status_container:
+        st.success(f"{len(image_names)} visualised images are now saved in {visualisation_folder}")

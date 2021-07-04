@@ -8,9 +8,17 @@ def display_instructions():
     with open("instructions.md") as file:
         markdown_string = file.read()
     st.markdown(markdown_string)
+    setup_footer()
 
 
 def setup_heading():
+    subheading = (
+        "<h3 style='text-align: center'>Accelerating plant" " physiology research</h3>"
+    )
+    st.markdown(subheading, unsafe_allow_html=True)
+
+
+def setup_footer():
     columns = st.beta_columns(3)
     with columns[0]:
         st.image(Image.open("logos/peb.jpeg"), width=145)
@@ -18,7 +26,3 @@ def setup_heading():
         st.image(Image.open("logos/uoa.jpeg"), width=140)
     with columns[2]:
         st.image(Image.open("logos/aiml.png"), width=275)
-    subheading = (
-        "<h3 style='text-align: center'>Accelerating plant" " physiology research</h3>"
-    )
-    st.markdown(subheading, unsafe_allow_html=True)

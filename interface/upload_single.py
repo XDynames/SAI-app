@@ -19,16 +19,17 @@ def display_upload_image():
     else:
         single_image_uploader()
         setup_upload_sidebar()
-        
+
 
 def print_unavilable_message():
-        message = (
-            "This feature is disabled in the online version of"
-            " the application. To use this functionality please"
-            " go to <INSERT LINK> to install and run the application"
-            " locally."
-        )
-        st.write(message)
+    message = (
+        "This feature is disabled in the online version of"
+        " the application. To use this functionality please"
+        " go to <INSERT LINK> to install and run the application"
+        " locally."
+    )
+    st.write(message)
+
 
 def single_image_uploader():
     file_like_object = st.file_uploader(
@@ -44,8 +45,8 @@ def single_image_uploader():
 def setup_upload_sidebar():
     plant_type_selection()
     confidence_sliderbar()
-    immature_stomata_threshold()
     camera_calibration_textbox()
+    immature_stomata_threshold()
 
 
 def camera_calibration_textbox():
