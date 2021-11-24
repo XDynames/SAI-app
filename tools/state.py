@@ -1,0 +1,28 @@
+import os
+
+Option_State = {
+    "mode": "",
+    "plant_type": "",
+    "image_url_dicts": {},
+    "image_name": "",
+    "draw_predictions": False,
+    "draw_ground_truth": False,
+    "draw_bboxes": True,
+    "draw_masks": True,
+    "draw_keypoints": True,
+    "uploaded_file": None,
+    "uploaded_inference": None,
+    "confidence_threshold": 0.5,
+    "image_size": None,
+    "image_area": 0.0,
+    "camera_calibration": None,
+    'minimum_stoma_length': 0.0,
+    "folder_path": '',
+    "folder_inference": None,
+    "visualisation_path": None,
+    "visualise": False,
+    "infer_button": False,
+    "current_path": os.path.dirname(os.getcwd()),
+    "last_path": os.path.dirname(os.getcwd()),
+    "select_folder": False,
+}
