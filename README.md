@@ -50,4 +50,16 @@ Run `bash setup_gpu.sh` to install the remaining dependencies.
 Run `./SAI` while inside the checkouted folder. This will automatically open a webpage in your browser where you can view and use the application
 
 ## Referencing
-If you use SAI as part of your work please cite us as:
+If you use SAI as part of your work please cite us:
+```
+@article {Sai2022.02.07.479482,
+	author = {Sai, Na and Bockman, James Paul and Chen, Hao and Watson-Haigh, Nathan and Xu, Bo and Feng, Xueying and Piechatzek, Adriane and Shen, Chunhua and Gilliham, Matthew},
+	title = {SAI: Fast and automated quantification of stomatal parameters on microscope images},
+	elocation-id = {2022.02.07.479482},
+	year = {2022},
+	doi = {10.1101/2022.02.07.479482},
+	URL = {https://www.biorxiv.org/content/early/2022/02/10/2022.02.07.479482},
+	eprint = {https://www.biorxiv.org/content/early/2022/02/10/2022.02.07.479482.full.pdf},
+	journal = {bioRxiv}
+}
+```
