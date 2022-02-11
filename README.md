@@ -2,7 +2,7 @@
 ## About
 
 
-## Installation
+## Installation (~10 minutes)
 <details>
     <summary> Windows Only Pre-Download Steps </summary>
 
