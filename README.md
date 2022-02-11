@@ -47,9 +47,10 @@ Run `bash setup_gpu.sh` to install the remaining dependencies.
 </details>
 
 ## Running SAI
-Run `./SAI` while inside the checkouted folder. This will automatically open a webpage in your browser where you can view and use the application
-When using CPU only measurement time has been measured at 60-6 seconds per image, this is also dependant on image resolution
-In GPU accelorated mode this time drops to 0.8-0.2 seconds per image
+Run `./SAI` while inside the checkouted folder. This will automatically open a webpage in your browser where you can view and use the application.
+
+When using CPU only measurement time has been measured at 60-6 seconds per image, this is also dependant on image resolution.
+In GPU accelorated mode this time drops to 0.8-0.2 seconds per image.
 
 ## Referencing
 If you use SAI as part of your work please cite us:
