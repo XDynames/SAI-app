@@ -52,6 +52,9 @@ Run `./SAI` while inside the checkouted folder. This will automatically open a w
 When using CPU only measurement time has been measured at 60-6 seconds per image, this is also dependant on image resolution.
 In GPU accelorated mode this time drops to 0.8-0.2 seconds per image.
 
+## Tested On
+Windows 10 & 11, Ubuntu 20.04 & 18.04, MacOS BigSur & Monterey
+
 ## Referencing
 If you use SAI as part of your work please cite us:
 ```
