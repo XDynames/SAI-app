@@ -35,7 +35,7 @@ Each pore measured by SAI is given a ID number which you can use to cross-check 
 <div align="center">
 <b>Links
 
-| Publication TBA | [Tool](https://github.com/XDynames/SAI-app) | Deep Learning Code TBA |
+| [Publication](https://www.biorxiv.org/content/10.1101/2022.02.07.479482v1) | [Tool](https://github.com/XDynames/SAI-app) | [Deep Learning Code](https://gitfront.io/r/jpb/u6BtFFMkNGCv/SAI-training/) |
 |:---:|:---:|:---:|
 
 </div>
