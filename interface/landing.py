@@ -11,7 +11,6 @@ def display_instructions():
 
 
 def setup_footer():
-    dispaly_links()
     display_logos()
 
 
