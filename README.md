@@ -1,4 +1,4 @@
-# StomaAI application
+# StomAI application
 ## About
 
 
