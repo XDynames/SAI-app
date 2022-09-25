@@ -85,7 +85,7 @@ def remove_close_to_edge_detections(predictions):
     for i, bbox_i in enumerate(predictions.pred_boxes):
         is_near_edge = is_bbox_near_edge(bbox_i, image_height, image_width)
         is_significantly_smaller_than_average = is_bbox_small(bbox_i, average_area)
-        if is_bbox_near_edge and is_significantly_smaller_than_average:
+        if is_near_edge and is_significantly_smaller_than_average:\
             continue
         else:
             final_indices.append(i)
@@ -106,7 +106,7 @@ def calculate_bbox_area(bbox):
 
 
 def is_bbox_near_edge(bbox, image_height, image_width):
-    x1, y1, x2, y2 = bbox    
+    x1, y1, x2, y2 = bbox
     is_near_edge = any([
         x1 < CLOSE_TO_EDGE_DISTANCE,
         y1 < CLOSE_TO_EDGE_DISTANCE,
