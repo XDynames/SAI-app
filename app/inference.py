@@ -57,7 +57,9 @@ def maybe_do_single_image_inference():
         with st.spinner("Measuring Stomata..."):
             image = get_selected_image()
             predictions, time_elapsed, valid_indices = run_on_image(image)
-            predictions = predictions_to_list_of_dictionaries(predictions)
+            predictions, valid_indices = predictions_to_list_of_dictionaries(
+                predictions, valid_indices
+            )
             Option_State["uploaded_inference"] = {
                 "name": Option_State["uploaded_file"]["name"],
                 "model_used": Option_State["plant_type"],
@@ -100,7 +102,7 @@ def maybe_do_inference_on_all_images_in_folder():
             do_inference_on_all_images_in_folder()
     if is_inference_available_for_folder():
         reset_predictions()
-        apply_user_settings()
+        # apply_user_settings()
         saved_filename = create_output_csv()
         display_download_link(saved_filename)
         display_visualisation_options()
@@ -155,7 +157,7 @@ def do_inference_on_all_images_in_folder():
     for filename in image_files:
         image = cv2.imread(directory + "/" + filename)
         predictions, time_elapsed, valid_indices = run_on_image(image)
-        record_predictions(predictions, filename, n_stoma)
+        record_predictions(predictions, filename, n_stoma, valid_indices)
 
         progress += increment
         progress_bar.progress(int(progress))
@@ -192,12 +194,18 @@ def is_supported_image_file(filename):
     return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
-def record_predictions(predictions, filename, n_stoma):
+def record_predictions(predictions, filename, n_stoma, valid_indices):
     path = "./output/temp/"
-    predictions = predictions_to_list_of_dictionaries(predictions, n_stoma)
+    predictions, valid_indices = predictions_to_list_of_dictionaries(
+        predictions, valid_indices, n_stoma
+    )
     filename = remove_extension_from_filename(filename)
+    to_save = {
+        "detections": predictions,
+        "valid_detection_indices": list(valid_indices),
+    }
     with open(path + ".".join([filename, "json"]), "w") as file:
-        json.dump({"detections": predictions}, file)
+        json.dump(to_save, file)
 
 
 def remove_extension_from_filename(filename):
@@ -205,18 +213,15 @@ def remove_extension_from_filename(filename):
     return filename.replace(file_extension, "")
 
 
-def predictions_to_list_of_dictionaries(predictions, n_stoma=0):
+def predictions_to_list_of_dictionaries(predictions, valid_indices, n_stoma=0):
     predictions = [
-        predictions_to_dictionary(i, predictions, n_stoma)
+        predictions_to_dictionary(i, predictions, n_stoma, valid_indices)
         for i in range(len(predictions.pred_boxes))
     ]
-    predictions = [
-        prediction for prediction in predictions if prediction is not None
-    ]
-    return predictions
+    return predictions, valid_indices
 
 
-def predictions_to_dictionary(i, predictions, n_stoma):
+def predictions_to_dictionary(i, predictions, n_stoma, valid_indices):
     # Extract and format predictions
     pred_mask = predictions.pred_masks[i].cpu().numpy()
     pred_AB = predictions.pred_keypoints[i].flatten().tolist()
@@ -261,7 +266,7 @@ def predictions_to_dictionary(i, predictions, n_stoma):
 
     width_length_ratio = calulate_width_over_length(pred_length, pred_width)
     if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
-        return
+        valid_indices.remove(i)
 
     prediction_dict = {
         "stoma_id": i + n_stoma,
@@ -275,7 +280,8 @@ def predictions_to_dictionary(i, predictions, n_stoma):
         "segmentation": [pred_polygon],
         "confidence": predictions.scores[i].item(),
     }
-    Predicted_Lengths.append(pred_length)
+    if i in valid_indices:
+        Predicted_Lengths.append(pred_length)
     return prediction_dict
 
 
@@ -491,17 +497,31 @@ def format_predictions(predictions):
     for prediction in predictions:
         image_name = prediction["image_name"]
         detections = prediction["detections"]
-        for detection in detections:
-            measurements = {
-                "stoma_id": detection["stoma_id"],
-                "width": detection["width"],
-                "length": detection["length"],
-                "area": detection["area"],
-                "class": "open" if detection["category_id"] else "closed",
-                "confidence": detection["confidence"],
-                "image_name": image_name,
-                "width/length": calculate_width_to_length_ratio(detection),
-            }
+        valid_indices = prediction["valid_detection_indices"]
+        for i, detection in enumerate(detections):
+            if i in valid_indices:
+                measurements = {
+                    "stoma_id": detection["stoma_id"],
+                    "width": detection["width"],
+                    "length": detection["length"],
+                    "area": detection["area"],
+                    "class": "open" if detection["category_id"] else "closed",
+                    "confidence": detection["confidence"],
+                    "image_name": image_name,
+                    "width/length": calculate_width_to_length_ratio(detection),
+                }
+            else:
+                measurements = {
+                    "stoma_id": detection["stoma_id"],
+                    "width": "NA",
+                    "length": "NA",
+                    "area": "NA",
+                    "class": "open" if detection["category_id"] else "closed",
+                    "confidence": detection["confidence"],
+                    "image_name": image_name,
+                    "width/length": "NA",
+                }
+
             stoma_measurements.append(measurements)
     return stoma_measurements
 

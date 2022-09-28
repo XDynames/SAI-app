@@ -158,15 +158,15 @@ def remove_outliers_from_records():
                 continue
             filepath = os.path.join(path, filename)
             record = load_json(filepath)
-            predictions = record["detections"]
-            length_predictions = extract_lengths(predictions)
-            remove_outliers(length_predictions, predictions)
-            write_to_json(predictions, filepath)
+            indices, length_predictions = extract_lengths(record)
+            remove_outliers(indices, length_predictions, record)
+            write_to_json(record, filepath)
 
 
 def load_json(filepath):
     with open(filepath, "r") as file:
         record = json.load(file)
+    record["valid_detection_indices"] = set(record["valid_detection_indices"])
     return record
 
 
@@ -177,25 +177,29 @@ def unpack_predictions(record):
     return predictions
 
 
-def extract_lengths(predictions):
-    lengths = []
-    for prediction in predictions:
-        lengths.append(prediction["length"])
-    return lengths
+def extract_lengths(record):
+    indices, lengths = [], []
+    predictions = record["detections"]
+    valid_indices = record["valid_detection_indices"]
+    for i, prediction in enumerate(predictions):
+        if i in valid_indices:
+            indices.append(i)
+            lengths.append(prediction["length"])
+    return indices, lengths
 
 
-def remove_outliers(lengths, record):
-    to_remove = find_outlier_indices(lengths)
-    for index in reversed(to_remove):
-        record.pop(index)
+def remove_outliers(indices, lengths, record):
+    to_remove = find_outlier_indices(indices, lengths)
+    for i in to_remove:
+        record["valid_detection_indices"].remove(i)
 
 
-def find_outlier_indices(lengths):
+def find_outlier_indices(indices, lengths):
     to_remove = []
     lower_bound = calculate_length_limit()
     for i, length in enumerate(lengths):
         if length < lower_bound:
-            to_remove.append(i)
+            to_remove.append(indices[i])
     return to_remove
 
 
@@ -207,5 +211,6 @@ def calculate_length_limit():
 
 
 def write_to_json(record, filepath):
+    record["valid_detection_indices"] = list(record["valid_detection_indices"])
     with open(filepath, "w") as file:
-        json.dump({"detections": record}, file)
+        json.dump(record, file)
