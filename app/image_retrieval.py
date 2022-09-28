@@ -45,4 +45,4 @@ def download_example():
 
 
 def get_uploaded_image():
-    return Option_State["uploaded_file"]['image']
+    return Option_State["uploaded_file"]["image"]

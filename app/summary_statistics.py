@@ -2,7 +2,10 @@ import streamlit as st
 
 from app import utils
 from .annotation_retrieval import get_ground_truth, get_predictions
-from .example_images import filter_immature_stomata, filter_low_confidence_predictions
+from .example_images import (
+    filter_immature_stomata,
+    filter_low_confidence_predictions,
+)
 from tools.constants import IS_ONLINE
 from tools.state import Option_State
 
@@ -18,9 +21,12 @@ def display_summary_statistics():
     column_names, column_human, column_predicted = st.columns(3)
     with column_names:
         display_summary_names()
-    if utils.is_mode_upload_an_example() and Option_State['uploaded_inference'] is not None:
+    if (
+        utils.is_mode_upload_an_example()
+        and Option_State["uploaded_inference"] is not None
+    ):
         with column_predicted:
-            predictions = Option_State['uploaded_inference']['predictions']
+            predictions = Option_State["uploaded_inference"]["predictions"]
             display_prediction_summary_statistics(predictions)
     if not utils.is_mode_upload_an_example():
         with column_human:
@@ -40,19 +46,28 @@ def display_summary_names():
 def display_ground_truth_summary_statistics():
     ground_truth = get_ground_truth()
     st.write("Human Annotations")
+    display_pore_count(ground_truth)
     calculate_and_display_summary_statistics(ground_truth)
 
 
 def display_prediction_summary_statistics(predictions=None):
-    predictions = get_predictions() if predictions is None else predictions
+    st.write("Model Estimates")
+    if predictions is None:
+        predictions = get_predictions()
+        display_pore_count(predictions)
+    else:
+        display_pore_count(predictions)
+        valid_indices = Option_State["uploaded_inference"][
+            "valid_detection_indices"
+        ]
+        predictions = [predictions[i] for i in valid_indices]
     predictions = filter_low_confidence_predictions(predictions)
     predictions = filter_immature_stomata(predictions)
-    st.write("Model Estimates")
+
     calculate_and_display_summary_statistics(predictions)
 
 
 def calculate_and_display_summary_statistics(annotations):
-    display_pore_count(annotations)
     display_average_length(annotations)
     display_average_width(annotations)
     display_average_area(annotations)
@@ -102,7 +117,7 @@ def average_key(annotations, key):
         average = 0
     if is_valid_calibration():
         average /= Option_State["camera_calibration"]
-        if key == 'area':
+        if key == "area":
             average /= Option_State["camera_calibration"]
     return round(average, 2)
 

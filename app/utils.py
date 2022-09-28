@@ -19,9 +19,9 @@ def load_json(filepath):
 # Help functions to check which mode the application is in
 def is_drawing_mode():
     return not (
-        is_mode_instructions() or
-        is_mode_slide_output_example() or
-        is_mode_upload_multiple_images()
+        is_mode_instructions()
+        or is_mode_slide_output_example()
+        or is_mode_upload_multiple_images()
     )
 
 
@@ -51,3 +51,11 @@ def is_mode_slide_output_example():
 
 def is_mode_upload_multiple_images():
     return Option_State["mode"] == "Upload Multiple Images"
+
+
+def select_predictions(predictions, indices):
+    predictions.pred_boxes.tensor = predictions.pred_boxes.tensor[indices]
+    predictions.pred_classes = predictions.pred_classes[indices]
+    predictions.pred_masks = predictions.pred_masks[indices]
+    predictions.pred_keypoints = predictions.pred_keypoints[indices]
+    predictions.scores = predictions.scores[indices]

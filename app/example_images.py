@@ -53,33 +53,56 @@ def draw_annotations_on_image(ax):
 
 def draw_predictions(mpl_axis, predictions=None):
     predictions = get_predictions() if predictions is None else predictions
+    predictions = apply_user_filters_to_predictions(predictions)
+    draw_labels_on_image(mpl_axis, predictions, False)
+
+
+def apply_user_filters_to_predictions(predictions):
     predictions = filter_low_confidence_predictions(predictions)
     predictions = filter_immature_stomata(predictions)
-    draw_labels_on_image(mpl_axis, predictions, False)
+    return predictions
+
+
+def draw_measurements(mpl_axis, predictions):
+    predictions = apply_user_filters_to_predictions(predictions)
+    draw.masks(mpl_axis, predictions, False)
+    draw.keypoints(mpl_axis, predictions, False)
+
+
+def draw_bounding_boxes(mpl_axis, predictions):
+    predictions = apply_user_filters_to_predictions(predictions)
+    draw.bboxes(mpl_axis, predictions, False)
 
 
 def maybe_draw_predictions(mpl_axis):
     if Option_State["uploaded_inference"] is not None:
-        predictions = Option_State["uploaded_inference"]['predictions']
-        draw_predictions(mpl_axis, predictions)
+        predictions = Option_State["uploaded_inference"]["predictions"]
+        valid_indices = Option_State["uploaded_inference"][
+            "valid_detection_indices"
+        ]
+        valid_predictions = [predictions[i] for i in valid_indices]
+        draw_measurements(mpl_axis, valid_predictions)
+        draw_bounding_boxes(mpl_axis, predictions)
 
 
 def filter_low_confidence_predictions(predictions):
     threshold = Option_State["confidence_threshold"]
-    return filter_predictions_below_threshold(predictions, threshold, 'confidence')
+    return filter_predictions_below_threshold(
+        predictions, threshold, "confidence"
+    )
 
 
 def filter_immature_stomata(predictions):
     threshold_in_micron = Option_State["minimum_stoma_length"]
     threshold = threshold_in_micron * get_pixel_to_micron_conversion_factor()
-    return filter_predictions_below_threshold(predictions, threshold, 'length')
+    return filter_predictions_below_threshold(predictions, threshold, "length")
 
 
 def get_pixel_to_micron_conversion_factor():
     if utils.is_mode_view_examples():
-        pixels_per_micron = CAMERA_CALIBRATION[Option_State['plant_type']]
+        pixels_per_micron = CAMERA_CALIBRATION[Option_State["plant_type"]]
     else:
-        pixels_per_micron = Option_State['camera_calibration']
+        pixels_per_micron = Option_State["camera_calibration"]
     return pixels_per_micron
 
 

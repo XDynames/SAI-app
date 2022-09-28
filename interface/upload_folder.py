@@ -66,7 +66,9 @@ def show_download_csv_button(csv_download, csv_filename):
 
 
 def show_save_visualisations_options():
-    output_path = os.path.join(Option_State["current_path"], "visualised_measurements")
+    output_path = os.path.join(
+        Option_State["current_path"], "visualised_measurements"
+    )
     Option_State["visualisation_path"] = st.text_input(
         "Enter the path where you want to save the images:", value=output_path
     )
