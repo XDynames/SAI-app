@@ -15,4 +15,13 @@ CAMERA_CALIBRATION = {
     "Arabidopsis": 10.25131,
 }
 
-OPENCV_FILE_SUPPORT = ["png", "bmp", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif"]
+OPENCV_FILE_SUPPORT = [
+    "png",
+    "bmp",
+    "jpeg",
+    "jpg",
+    "jpe",
+    "jp2",
+    "tiff",
+    "tif",
+]

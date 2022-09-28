@@ -18,23 +18,23 @@ from app.summary_statistics import is_valid_calibration
 from interface.upload_single import convert_to_SIU_length
 from interface.upload_folder import (
     show_download_csv_button,
-    show_save_visualisations_options
+    show_save_visualisations_options,
 )
 from inference.infer import run_on_image
 from inference.post_processing import (
     remove_outliers_from_records,
-    Predicted_Lengths
+    Predicted_Lengths,
 )
 from app.example_images import (
     draw_predictions,
     filter_low_confidence_predictions,
     filter_immature_stomata,
-    setup_plot
+    setup_plot,
 )
 from tools.constants import OPENCV_FILE_SUPPORT
 from tools.load import (
     clean_temporary_folder,
-    maybe_create_visualisation_folder
+    maybe_create_visualisation_folder,
 )
 from tools.state import Option_State
 
@@ -45,19 +45,24 @@ WIDTH_OVER_LENGTH_THRESHOLD = 0.85
 def maybe_do_inference():
     if utils.is_file_uploaded() and utils.is_mode_upload_an_example():
         maybe_do_single_image_inference()
-    if utils.is_image_folder_avaiable() and utils.is_mode_upload_multiple_images():
+    if (
+        utils.is_image_folder_avaiable()
+        and utils.is_mode_upload_multiple_images()
+    ):
         maybe_do_inference_on_all_images_in_folder()
 
 
 def maybe_do_single_image_inference():
     if not is_inference_available_for_uploaded_image():
         with st.spinner("Measuring Stomata..."):
-            predictions, time_elapsed = run_on_image(get_selected_image())
+            image = get_selected_image()
+            predictions, time_elapsed, valid_indices = run_on_image(image)
             predictions = predictions_to_list_of_dictionaries(predictions)
             Option_State["uploaded_inference"] = {
-                'name': Option_State['uploaded_file']['name'],
-                'model_used': Option_State['plant_type'],
-                'predictions': predictions,
+                "name": Option_State["uploaded_file"]["name"],
+                "model_used": Option_State["plant_type"],
+                "predictions": predictions,
+                "valid_detection_indices": valid_indices,
             }
         st.success(f"Finished in {time_elapsed:2f}s")
 
@@ -71,18 +76,20 @@ def is_inference_available_for_uploaded_image():
 
 
 def is_upload_inference_available():
-    return not Option_State['uploaded_inference'] is None
+    return not Option_State["uploaded_inference"] is None
 
 
 def is_inference_for_the_current_file():
-    currently_uploaded_filename = Option_State['uploaded_file']['name']
-    filename_of_available_inference = Option_State['uploaded_inference']['name']
+    currently_uploaded_filename = Option_State["uploaded_file"]["name"]
+    filename_of_available_inference = Option_State["uploaded_inference"][
+        "name"
+    ]
     return currently_uploaded_filename == filename_of_available_inference
 
 
 def is_inference_done_using_the_selected_model():
-    currently_selected_model = Option_State['plant_type']
-    model_used_for_inference = Option_State['uploaded_inference']['model_used']
+    currently_selected_model = Option_State["plant_type"]
+    model_used_for_inference = Option_State["uploaded_inference"]["model_used"]
     return currently_selected_model == model_used_for_inference
 
 
@@ -109,30 +116,30 @@ def is_inference_available_for_folder():
 
 
 def is_folder_inference_available():
-    return not Option_State['folder_inference'] is None
+    return not Option_State["folder_inference"] is None
 
 
 def is_folder_inference_done_using_the_selected_model():
-    currently_selected_model = Option_State['plant_type']
-    model_used_for_inference = Option_State['folder_inference']['model_used']
+    currently_selected_model = Option_State["plant_type"]
+    model_used_for_inference = Option_State["folder_inference"]["model_used"]
     return currently_selected_model == model_used_for_inference
 
 
 def is_inference_for_the_current_folder():
-    current_folder = Option_State['folder_path']
-    available_inference = Option_State['folder_inference']['name']
+    current_folder = Option_State["folder_path"]
+    available_inference = Option_State["folder_inference"]["name"]
     return current_folder == available_inference
 
 
 def is_infer_button_pressed():
-    pressed = Option_State['infer_button']
-    Option_State['infer_button'] = False
+    pressed = Option_State["infer_button"]
+    Option_State["infer_button"] = False
     return pressed
 
 
 def do_inference_on_all_images_in_folder():
     total_time = 0
-    directory = Option_State['folder_path']
+    directory = Option_State["folder_path"]
     image_files = get_list_of_images_in_folder(directory)
     if len(image_files) == 0:
         return
@@ -146,8 +153,8 @@ def do_inference_on_all_images_in_folder():
 
     n_stoma = 0
     for filename in image_files:
-        image = cv2.imread(directory + '/' + filename)
-        predictions, time_elapsed = run_on_image(image)
+        image = cv2.imread(directory + "/" + filename)
+        predictions, time_elapsed, valid_indices = run_on_image(image)
         record_predictions(predictions, filename, n_stoma)
 
         progress += increment
@@ -155,39 +162,38 @@ def do_inference_on_all_images_in_folder():
 
         with status_container:
             st.info(f"{filename} completed in {time_elapsed:.2f}s")
-        
+
         total_time += time_elapsed
         n_stoma += len(predictions)
-    
+
     progress_bar.progress(100)
     progress_bar.empty()
     progress_bar_header.empty()
     with status_container:
         st.success(f"Measured {len(image_files)} images in {total_time:.2f}s")
-    
+
     remove_outliers_from_records()
-    Option_State['folder_inference'] = {
-        'name': Option_State['folder_path'],
-        'model_used': Option_State['plant_type'],
-        'predictions': load_all_saved_predictions(),
+    Option_State["folder_inference"] = {
+        "name": Option_State["folder_path"],
+        "model_used": Option_State["plant_type"],
+        "predictions": load_all_saved_predictions(),
     }
 
 
 def get_list_of_images_in_folder(folder_path):
     filenames = os.listdir(folder_path)
     image_files = [
-        filename for filename in filenames
-        if is_supported_image_file(filename)
+        filename for filename in filenames if is_supported_image_file(filename)
     ]
     return image_files
 
 
 def is_supported_image_file(filename):
-    return filename.split('.')[-1] in OPENCV_FILE_SUPPORT
+    return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
 def record_predictions(predictions, filename, n_stoma):
-    path = './output/temp/'
+    path = "./output/temp/"
     predictions = predictions_to_list_of_dictionaries(predictions, n_stoma)
     filename = remove_extension_from_filename(filename)
     with open(path + ".".join([filename, "json"]), "w") as file:
@@ -195,8 +201,8 @@ def record_predictions(predictions, filename, n_stoma):
 
 
 def remove_extension_from_filename(filename):
-    file_extension = '.' + filename.split('.')[-1]
-    return filename.replace(file_extension, '')
+    file_extension = "." + filename.split(".")[-1]
+    return filename.replace(file_extension, "")
 
 
 def predictions_to_list_of_dictionaries(predictions, n_stoma=0):
@@ -204,7 +210,9 @@ def predictions_to_list_of_dictionaries(predictions, n_stoma=0):
         predictions_to_dictionary(i, predictions, n_stoma)
         for i in range(len(predictions.pred_boxes))
     ]
-    predictions = [prediction for prediction in predictions if prediction is not None]
+    predictions = [
+        prediction for prediction in predictions if prediction is not None
+    ]
     return predictions
 
 
@@ -229,8 +237,10 @@ def predictions_to_dictionary(i, predictions, n_stoma):
             pred_AB = get_AB_from_polygon(pred_polygon)
             pred_CD = find_CD(pred_polygon, pred_AB)
             pred_length = l2_dist(pred_AB)
-        
-        width_length_ratio = calulate_width_over_length(pred_length, l2_dist(pred_CD))
+
+        width_length_ratio = calulate_width_over_length(
+            pred_length, l2_dist(pred_CD)
+        )
         if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
             pred_AB = get_AB_from_polygon(pred_polygon)
             pred_CD = find_CD(pred_polygon, pred_AB)
@@ -268,6 +278,7 @@ def predictions_to_dictionary(i, predictions, n_stoma):
     Predicted_Lengths.append(pred_length)
     return prediction_dict
 
+
 def get_AB_from_polygon(polygon):
     x_points = [x for x in polygon[0::2]]
     y_points = [y for y in polygon[1::2]]
@@ -291,7 +302,7 @@ def find_maximum_area_polygon(polygons):
     index = 0
     for i, polygon in enumerate(polygons):
         try:
-            polygon = shapes.Polygon(polygon['coordinates'][0])
+            polygon = shapes.Polygon(polygon["coordinates"][0])
         except Exception:
             continue
         if polygon.area > maximum:
@@ -339,7 +350,7 @@ def find_CD(polygon, keypoints=None):
     # If there are multiple intersections, pick the largest
     if len(intersections) > 2:
         intersections = select_longest_line(intersections)
-    
+
     if intersections[0].coords.xy[1] > intersections[1].coords.xy[1]:
         D = intersections[0].coords.xy
         C = intersections[1].coords.xy
@@ -352,7 +363,7 @@ def find_CD(polygon, keypoints=None):
 def select_longest_line(multipoint):
     lines, lengths = [], []
     for i, point_1 in enumerate(multipoint):
-        for point_2 in multipoint[i+1:]:
+        for point_2 in multipoint[i + 1 :]:
             lines.append(shapes.LineString([point_1, point_2]))
             lengths.append(lines[-1].length)
     longest_line_idx = max(range(len(lengths)), key=lambda i: lengths[i])
@@ -414,7 +425,9 @@ def l2_dist(keypoints):
 
 
 def reset_predictions():
-    Option_State['folder_inference']['predictions'] = load_all_saved_predictions()
+    Option_State["folder_inference"][
+        "predictions"
+    ] = load_all_saved_predictions()
 
 
 def apply_user_settings():
@@ -432,11 +445,11 @@ def apply_immature_stoma_filter():
 
 
 def apply_function(function):
-    predictions = Option_State['folder_inference']['predictions']
+    predictions = Option_State["folder_inference"]["predictions"]
     for i, image in enumerate(predictions):
         image_predictions = image["detections"]
         image_predictions = function(image_predictions)
-        predictions[i]['detections'] = image_predictions
+        predictions[i]["detections"] = image_predictions
 
 
 def maybe_convert_length_measurement_units():
@@ -446,21 +459,21 @@ def maybe_convert_length_measurement_units():
 
 def convert_measurements(predictions):
     for prediction in predictions:
-        prediction['width'] = convert_to_SIU_length(prediction['width'])
-        prediction['length'] = convert_to_SIU_length(prediction['length'])
-        prediction['area'] = convert_to_SIU_length(prediction['area'])
-        prediction['area'] = convert_to_SIU_length(prediction['area'])
+        prediction["width"] = convert_to_SIU_length(prediction["width"])
+        prediction["length"] = convert_to_SIU_length(prediction["length"])
+        prediction["area"] = convert_to_SIU_length(prediction["area"])
+        prediction["area"] = convert_to_SIU_length(prediction["area"])
     return predictions
 
 
 def create_output_csv():
-    predictions = Option_State['folder_inference']['predictions']
+    predictions = Option_State["folder_inference"]["predictions"]
     predictions = format_predictions(predictions)
     return write_to_csv(predictions)
 
 
 def load_all_saved_predictions():
-    directory = './output/temp/'
+    directory = "./output/temp/"
     files = os.listdir(directory)
     image_detections = []
     for file in files:
@@ -480,11 +493,11 @@ def format_predictions(predictions):
         detections = prediction["detections"]
         for detection in detections:
             measurements = {
-                "stoma_id": detection['stoma_id'],
+                "stoma_id": detection["stoma_id"],
                 "width": detection["width"],
                 "length": detection["length"],
                 "area": detection["area"],
-                "class": 'open' if detection["category_id"] else 'closed',
+                "class": "open" if detection["category_id"] else "closed",
                 "confidence": detection["confidence"],
                 "image_name": image_name,
                 "width/length": calculate_width_to_length_ratio(detection),
@@ -494,7 +507,8 @@ def format_predictions(predictions):
 
 
 def calculate_width_to_length_ratio(detection):
-    return calulate_width_over_length(detection["length"], detection['width'])
+    return calulate_width_over_length(detection["length"], detection["width"])
+
 
 def calulate_width_over_length(length, width):
     return width / length if length > 0 else 0
@@ -512,8 +526,13 @@ def write_to_csv(measurements):
         "confidence",
     ]
     column_keys = [
-        "stoma_id", "image_name", "class", "length",
-        "width", "area", "width/length",
+        "stoma_id",
+        "image_name",
+        "class",
+        "length",
+        "width",
+        "area",
+        "width/length",
         "confidence",
     ]
     csv = ",".join(column_names) + "\n"
@@ -525,19 +544,19 @@ def write_to_csv(measurements):
         values = [str(x) for x in values]
         csv += ",".join(values) + "\n"
 
-    path = Option_State['folder_path']
-    if os.path.basename(path) == '':
+    path = Option_State["folder_path"]
+    if os.path.basename(path) == "":
         directory_name = os.path.basename(os.path.dirname(path))
     else:
         directory_name = os.path.basename(path)
-    filename = f'{directory_name}.csv'
-    with open(f'./output/temp/{filename}', "w") as file:
+    filename = f"{directory_name}.csv"
+    with open(f"./output/temp/{filename}", "w") as file:
         file.write(csv)
     return filename
 
 
 def display_download_link(temp_csv_name):
-    dataframe = pd.read_csv('./output/temp/' + temp_csv_name)
+    dataframe = pd.read_csv("./output/temp/" + temp_csv_name)
     show_download_csv_button(dataframe, temp_csv_name)
 
 
@@ -546,15 +565,15 @@ def display_visualisation_options():
 
 
 def maybe_visualise_and_save():
-    if Option_State['visualise']:
+    if Option_State["visualise"]:
         maybe_create_visualisation_folder()
         visualise_and_save()
-        Option_State['visualise'] = False
+        Option_State["visualise"] = False
 
 
 def visualise_and_save():
-    visualisation_folder = Option_State['visualisation_path']
-    image_folder = Option_State['folder_path']
+    visualisation_folder = Option_State["visualisation_path"]
+    image_folder = Option_State["folder_path"]
     image_names = get_list_of_images_in_folder(image_folder)
 
     status_container = st.empty()
@@ -585,28 +604,30 @@ def visualise_and_save():
     progress_bar.empty()
     progress_bar_header.empty()
     with status_container:
-        st.success(f"{len(image_names)} visualised images are now saved in {visualisation_folder}")
+        st.success(
+            f"{len(image_names)} visualised images are now saved in {visualisation_folder}"
+        )
 
 
 def draw_and_save_visualisation(image_name):
-    output_path = Option_State['visualisation_path']
-    input_path = Option_State['folder_path']
+    output_path = Option_State["visualisation_path"]
+    input_path = Option_State["folder_path"]
     # Load image
     image = cv2.imread(os.path.join(input_path, image_name))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # Create matplot lib axis
     fig, ax = setup_plot(image)
     # Load images measurements
-    predictions_filename = image_name.split('.')[0] + '.json'
-    prediction_path = os.path.join('./output/temp/', predictions_filename)
-    predictions = utils.load_json(prediction_path)['detections']
+    predictions_filename = image_name.split(".")[0] + ".json"
+    prediction_path = os.path.join("./output/temp/", predictions_filename)
+    predictions = utils.load_json(prediction_path)["detections"]
     # Draw onto axis
     draw_predictions(ax, predictions)
     # Save drawing
     fig.savefig(
         os.path.join(output_path, image_name),
         dpi=400,
-        bbox_inches='tight',
+        bbox_inches="tight",
         pad_inches=0,
     )
     plt.close(fig)

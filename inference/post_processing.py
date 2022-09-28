@@ -1,9 +1,11 @@
 import os
 import json
 
-from scipy.stats import iqr
-import streamlit as st
+
 import numpy as np
+import streamlit as st
+import torch
+from scipy.stats import iqr
 
 CLOSE_TO_EDGE_DISTANCE = 20
 CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.85
@@ -12,10 +14,14 @@ IOU_THRESHOLD = 0.2
 Predicted_Lengths = []
 
 
-def filter_invalid_predictions(predictions):
+def get_indices_of_valid_predictions(predictions):
     remove_intersecting_predictions(predictions)
-    remove_close_to_edge_detections(predictions)
-    remove_extremley_small_detections(predictions)
+    i_away_from_edge = get_indices_of_detections_away_from_edges(predictions)
+    i_above_minimum_size = get_indices_of_detections_above_minimum_size(
+        predictions
+    )
+    valid_indices = i_away_from_edge.intersection(i_above_minimum_size)
+    return valid_indices
 
 
 def remove_intersecting_predictions(predictions):
@@ -42,7 +48,7 @@ def is_overlapping(bbox1, bbox2):
         return overlaps(bbox1, bbox2)
     return False
 
-    
+
 def intersects(bbox_1, bbox_2):
     is_overlap = not (
         bbox_2[0] > bbox_1[2]
@@ -58,6 +64,7 @@ def overlaps(bbox_1, bbox_2):
     if iou > IOU_THRESHOLD:
         return True
     return False
+
 
 def intersection_over_union(bbox, bbox_2):
     x_max, y_max = max(bbox[0], bbox_2[0]), max(bbox[1], bbox_2[1])
@@ -78,57 +85,65 @@ def select_predictions(predictions, indices):
     predictions.scores = predictions.scores[indices]
 
 
-def remove_close_to_edge_detections(predictions):
+# TODO: Keep track of a list of invalid indices so that measurements
+#       can be removed but not detections from visuals/output data
+def get_indices_of_detections_away_from_edges(predictions):
     average_area = calculate_average_bbox_area(predictions)
-    image_height,  image_width  = predictions.image_size
-    final_indices = []
+    image_height, image_width = predictions.image_size
+    valid_indices = set()
     for i, bbox_i in enumerate(predictions.pred_boxes):
         is_near_edge = is_bbox_near_edge(bbox_i, image_height, image_width)
-        is_significantly_smaller_than_average = is_bbox_small(bbox_i, average_area)
-        if is_near_edge and is_significantly_smaller_than_average:\
+        is_significantly_smaller_than_average = is_bbox_small(
+            bbox_i, average_area
+        )
+        if is_near_edge and is_significantly_smaller_than_average:
             continue
         else:
-            final_indices.append(i)
-    select_predictions(predictions, final_indices)
+            valid_indices.add(i)
+    return valid_indices
 
 
 def calculate_average_bbox_area(predictions):
-    areas = [ calculate_bbox_area(bbox) for bbox in predictions.pred_boxes ]
+    areas = [calculate_bbox_area(bbox) for bbox in predictions.pred_boxes]
     if not areas:
         return 0
     return sum(areas) / len(areas)
 
 
 def calculate_bbox_area(bbox):
-    width =  abs(bbox[2] - bbox[0])
+    width = abs(bbox[2] - bbox[0])
     height = abs(bbox[3] - bbox[1])
     return width * height
 
 
 def is_bbox_near_edge(bbox, image_height, image_width):
     x1, y1, x2, y2 = bbox
-    is_near_edge = any([
-        x1 < CLOSE_TO_EDGE_DISTANCE,
-        y1 < CLOSE_TO_EDGE_DISTANCE,
-        image_width - x2 < CLOSE_TO_EDGE_DISTANCE,
-        image_height - y2 < CLOSE_TO_EDGE_DISTANCE,
-    ])
+    is_near_edge = any(
+        [
+            x1 < CLOSE_TO_EDGE_DISTANCE,
+            y1 < CLOSE_TO_EDGE_DISTANCE,
+            image_width - x2 < CLOSE_TO_EDGE_DISTANCE,
+            image_height - y2 < CLOSE_TO_EDGE_DISTANCE,
+        ]
+    )
     return is_near_edge
 
+
 def is_bbox_small(bbox, average_area):
-    threshold_area =  CLOSE_TO_EDGE_SIZE_THRESHOLD * average_area
+    threshold_area = CLOSE_TO_EDGE_SIZE_THRESHOLD * average_area
     bbox_area = calculate_bbox_area(bbox)
     return bbox_area < threshold_area
 
-def remove_extremley_small_detections(predictions):
+
+def get_indices_of_detections_above_minimum_size(predictions):
     average_area = calculate_average_bbox_area(predictions)
-    final_indices = []
+    valid_indices = set()
     for i, bbox_i in enumerate(predictions.pred_boxes):
         if is_bbox_extremley_small(bbox_i, average_area):
             continue
         else:
-            final_indices.append(i)
-    select_predictions(predictions, final_indices)
+            valid_indices.add(i)
+    return valid_indices
 
 
 def is_bbox_extremley_small(bbox, average_area):
@@ -136,14 +151,14 @@ def is_bbox_extremley_small(bbox, average_area):
 
 
 def remove_outliers_from_records():
-    path = './output/temp/'
+    path = "./output/temp/"
     for filename in os.listdir(path):
         if ".json" in filename:
             if "-gt" in filename:
                 continue
             filepath = os.path.join(path, filename)
             record = load_json(filepath)
-            predictions = record['detections']
+            predictions = record["detections"]
             length_predictions = extract_lengths(predictions)
             remove_outliers(length_predictions, predictions)
             write_to_json(predictions, filepath)
@@ -158,14 +173,14 @@ def load_json(filepath):
 def unpack_predictions(record):
     predictions = []
     for detection in record:
-        predictions.append(detection['pred'])
+        predictions.append(detection["pred"])
     return predictions
 
 
 def extract_lengths(predictions):
     lengths = []
     for prediction in predictions:
-        lengths.append(prediction['length'])
+        lengths.append(prediction["length"])
     return lengths
 
 
@@ -185,9 +200,9 @@ def find_outlier_indices(lengths):
 
 
 def calculate_length_limit():
-    inter_quartile_range = iqr(Predicted_Lengths, interpolation='midpoint')
+    inter_quartile_range = iqr(Predicted_Lengths, interpolation="midpoint")
     median = np.median(Predicted_Lengths)
-    lower_whisker = median -  2.0 * inter_quartile_range
+    lower_whisker = median - 2.0 * inter_quartile_range
     return lower_whisker
 
 

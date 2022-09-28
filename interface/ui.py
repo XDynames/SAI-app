@@ -7,14 +7,17 @@ from .landing import display_instructions
 from .upload_single import display_upload_image
 from .upload_folder import display_upload_zip
 from .example_images import display_example_selection
-from .example_output import display_group_output_example, display_slide_output_example
+from .example_output import (
+    display_group_output_example,
+    display_slide_output_example,
+)
 
 ENABLED_MODES = [
     "Instructions",
     "View Example Images",
     "View Example Slide Output",
     "Upload An Image",
-    "Upload Multiple Images"
+    "Upload Multiple Images",
 ]
 
 MODE_METHODS = {
@@ -58,7 +61,7 @@ def draw_title():
         }
         </style>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown(
@@ -71,7 +74,7 @@ def draw_title():
             </p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     st.markdown("<br>", unsafe_allow_html=True)
 

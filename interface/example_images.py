@@ -56,11 +56,15 @@ def drawing_options():
 
 
 def draw_ground_truth_checkbox():
-    Option_State["draw_ground_truth"] = st.sidebar.checkbox("Show Human Measurements")
+    Option_State["draw_ground_truth"] = st.sidebar.checkbox(
+        "Show Human Measurements"
+    )
 
 
 def draw_predictions_checkbox():
-    Option_State["draw_predictions"] = st.sidebar.checkbox("Show Model Predictions")
+    Option_State["draw_predictions"] = st.sidebar.checkbox(
+        "Show Model Predictions"
+    )
 
 
 def maybe_draw_confidence_slidebar():
@@ -74,7 +78,11 @@ def draw_predictions_enabled():
 
 def confidence_sliderbar():
     Option_State["confidence_threshold"] = st.sidebar.slider(
-        "Confidence Threshold", min_value=0.5, max_value=1.0, value=0.5, step=0.05
+        "Confidence Threshold",
+        min_value=0.5,
+        max_value=1.0,
+        value=0.5,
+        step=0.05,
     )
 
 

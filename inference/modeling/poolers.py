@@ -63,7 +63,12 @@ class ROIPooler(D2ROIPooler):
 
         dtype, device = x[0].dtype, x[0].device
         output = torch.zeros(
-            (num_boxes, num_channels, self.output_size[0], self.output_size[1]),
+            (
+                num_boxes,
+                num_channels,
+                self.output_size[0],
+                self.output_size[1],
+            ),
             dtype=dtype,
             device=device,
         )

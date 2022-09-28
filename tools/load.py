@@ -28,8 +28,10 @@ def download_json(url):
         downloaded_json = json.loads(response.read())
     return downloaded_json
 
+
 def download_and_save_yaml(url, filename):
     save_yaml(filename, download_yaml(url))
+
 
 def download_yaml(url):
     with urllib.request.urlopen(url) as response:
@@ -38,7 +40,7 @@ def download_yaml(url):
 
 
 def save_yaml(filename, downloaded_yaml):
-    with open(filename, 'w') as file:
+    with open(filename, "w") as file:
         yaml.dump(downloaded_yaml, file)
 
 
@@ -103,7 +105,9 @@ def async_load_assets(cloud_files):
         for species in cloud_files.keys():
             for image_name in cloud_files[species].keys():
                 image_dict = cloud_files[species][image_name]
-                executor.submit(download_assets, image_dict, species, image_name)
+                executor.submit(
+                    download_assets, image_dict, species, image_name
+                )
 
 
 def main():
@@ -131,14 +135,14 @@ def create_output_folders():
 
 
 def clean_temporary_folder():
-    path = './output/temp/'
+    path = "./output/temp/"
     files = os.listdir(path)
     for file in files:
         os.remove(path + file)
 
 
 def maybe_create_visualisation_folder():
-    visualisation_path = Option_State['visualisation_path']
+    visualisation_path = Option_State["visualisation_path"]
     if not os.path.exists(visualisation_path):
         os.makedirs(visualisation_path)
 
