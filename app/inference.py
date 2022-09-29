@@ -26,7 +26,8 @@ from inference.post_processing import (
     Predicted_Lengths,
 )
 from app.example_images import (
-    draw_predictions,
+    draw_measurements,
+    draw_bounding_boxes,
     filter_low_confidence_predictions,
     filter_immature_stomata,
     setup_plot,
@@ -156,6 +157,7 @@ def do_inference_on_all_images_in_folder():
     n_stoma = 0
     for filename in image_files:
         image = cv2.imread(directory + "/" + filename)
+        image = image[:, :, [2, 1, 0]]
         predictions, time_elapsed, valid_indices = run_on_image(image)
         record_predictions(predictions, filename, n_stoma, valid_indices)
 
@@ -640,9 +642,13 @@ def draw_and_save_visualisation(image_name):
     # Load images measurements
     predictions_filename = image_name.split(".")[0] + ".json"
     prediction_path = os.path.join("./output/temp/", predictions_filename)
-    predictions = utils.load_json(prediction_path)["detections"]
+    record = utils.load_json(prediction_path)
+    predictions = record["detections"]
+    valid_indices = record["valid_detection_indices"]
+    valid_predictions = [predictions[i] for i in valid_indices]
     # Draw onto axis
-    draw_predictions(ax, predictions)
+    draw_measurements(ax, valid_predictions)
+    draw_bounding_boxes(ax, predictions)
     # Save drawing
     fig.savefig(
         os.path.join(output_path, image_name),
