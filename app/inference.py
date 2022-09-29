@@ -103,7 +103,7 @@ def maybe_do_inference_on_all_images_in_folder():
             do_inference_on_all_images_in_folder()
     if is_inference_available_for_folder():
         reset_predictions()
-        # apply_user_settings()
+        apply_user_settings()
         saved_filename = create_output_csv()
         display_download_link(saved_filename)
         display_visualisation_options()
