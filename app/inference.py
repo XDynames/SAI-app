@@ -13,34 +13,41 @@ from shapely import affinity
 from rasterio.transform import IDENTITY
 
 from app import utils
+from app.example_images import (
+    draw_bounding_boxes,
+    draw_measurements,
+    filter_immature_stomata,
+    filter_low_confidence_predictions,
+    setup_plot,
+)
 from app.image_retrieval import get_selected_image
 from app.summary_statistics import is_valid_calibration
 from interface.upload_single import convert_to_SIU_length
 from interface.upload_folder import (
-    show_download_csv_button,
+    get_download_csv_button,
     show_save_visualisations_options,
+    show_side_by_side_buttons,
 )
 from inference.infer import run_on_image
 from inference.post_processing import (
-    remove_outliers_from_records,
     Predicted_Lengths,
+    remove_outliers_from_records,
 )
-from app.example_images import (
-    draw_measurements,
-    draw_bounding_boxes,
-    filter_low_confidence_predictions,
-    filter_immature_stomata,
-    setup_plot,
+
+from tools.constants import (
+    DENSITY_KEYS,
+    DENSITY_OUTPUT_COLUMNS,
+    MEASUREMENT_KEYS,
+    MEASUREMENT_OUTPUT_COLUMN_NAMES,
+    MINIMUM_LENGTH,
+    OPENCV_FILE_SUPPORT,
+    WIDTH_OVER_LENGTH_THRESHOLD,
 )
-from tools.constants import OPENCV_FILE_SUPPORT
 from tools.load import (
     clean_temporary_folder,
     maybe_create_visualisation_folder,
 )
 from tools.state import Option_State
-
-MINIMUM_LENGTH = 5
-WIDTH_OVER_LENGTH_THRESHOLD = 0.85
 
 
 def maybe_do_inference():
@@ -104,8 +111,8 @@ def maybe_do_inference_on_all_images_in_folder():
     if is_inference_available_for_folder():
         reset_predictions()
         apply_user_settings()
-        saved_filename = create_output_csv()
-        display_download_link(saved_filename)
+        density_filename, measurement_filename = create_output_csvs()
+        display_download_links(density_filename, measurement_filename)
         display_visualisation_options()
         maybe_visualise_and_save()
 
@@ -474,10 +481,13 @@ def convert_measurements(predictions):
     return predictions
 
 
-def create_output_csv():
+def create_output_csvs():
     predictions = Option_State["folder_inference"]["predictions"]
-    predictions = format_predictions(predictions)
-    return write_to_csv(predictions)
+    valid_predictions = format_predictions(predictions)
+    measurement_csv_filename = write_measurements_to_csv(valid_predictions)
+    densities = format_densities(predictions)
+    density_csv_filename = write_density_csv(densities)
+    return density_csv_filename, measurement_csv_filename
 
 
 def load_all_saved_predictions():
@@ -501,29 +511,18 @@ def format_predictions(predictions):
         detections = prediction["detections"]
         valid_indices = prediction["valid_detection_indices"]
         for i, detection in enumerate(detections):
-            if i in valid_indices:
-                measurements = {
-                    "stoma_id": detection["stoma_id"],
-                    "width": detection["width"],
-                    "length": detection["length"],
-                    "area": detection["area"],
-                    "class": "open" if detection["category_id"] else "closed",
-                    "confidence": detection["confidence"],
-                    "image_name": image_name,
-                    "width/length": calculate_width_to_length_ratio(detection),
-                }
-            else:
-                measurements = {
-                    "stoma_id": detection["stoma_id"],
-                    "width": "NA",
-                    "length": "NA",
-                    "area": "NA",
-                    "class": "open" if detection["category_id"] else "closed",
-                    "confidence": detection["confidence"],
-                    "image_name": image_name,
-                    "width/length": "NA",
-                }
-
+            if i not in valid_indices:
+                continue
+            measurements = {
+                "stoma_id": detection["stoma_id"],
+                "width": detection["width"],
+                "length": detection["length"],
+                "area": detection["area"],
+                "class": "open" if detection["category_id"] else "closed",
+                "confidence": detection["confidence"],
+                "image_name": image_name,
+                "width/length": calculate_width_to_length_ratio(detection),
+            }
             stoma_measurements.append(measurements)
     return stoma_measurements
 
@@ -536,33 +535,22 @@ def calulate_width_over_length(length, width):
     return width / length if length > 0 else 0
 
 
-def write_to_csv(measurements):
-    column_names = [
-        "id",
-        "image_name",
-        "class",
-        "length",
-        "width",
-        "area",
-        "width/length",
-        "confidence",
-    ]
-    column_keys = [
-        "stoma_id",
-        "image_name",
-        "class",
-        "length",
-        "width",
-        "area",
-        "width/length",
-        "confidence",
-    ]
-    csv = ",".join(column_names) + "\n"
+def write_measurements_to_csv(measurements):
+    measurement_csv_filepath = write_output_csv(
+        measurements,
+        MEASUREMENT_OUTPUT_COLUMN_NAMES,
+        MEASUREMENT_KEYS,
+        "pore_measurements",
+    )
+    return measurement_csv_filepath
 
-    for i, measurement in enumerate(measurements):
+
+def write_output_csv(measurements, column_names, column_keys, name):
+    csv = ",".join(column_names) + "\n"
+    for measurement in measurements:
         values = []
-        for stoma_property in column_keys:
-            values.append(measurement[stoma_property])
+        for key in column_keys:
+            values.append(measurement[key])
         values = [str(x) for x in values]
         csv += ",".join(values) + "\n"
 
@@ -571,15 +559,50 @@ def write_to_csv(measurements):
         directory_name = os.path.basename(os.path.dirname(path))
     else:
         directory_name = os.path.basename(path)
-    filename = f"{directory_name}.csv"
+    filename = f"{name}_{directory_name}.csv"
     with open(f"./output/temp/{filename}", "w") as file:
         file.write(csv)
     return filename
 
 
-def display_download_link(temp_csv_name):
-    dataframe = pd.read_csv("./output/temp/" + temp_csv_name)
-    show_download_csv_button(dataframe, temp_csv_name)
+def format_densities(predictions):
+    densities = []
+    for prediction in predictions:
+        detections = prediction["detections"]
+        n_stomata = len(detections)
+        density = {
+            "image_name": prediction["image_name"],
+            "n_stomata": n_stomata,
+            "density": 0,
+        }
+        densities.append(density)
+    return densities
+
+
+def write_density_csv(densities):
+    density_csv_filepath = write_output_csv(
+        densities,
+        DENSITY_OUTPUT_COLUMNS,
+        DENSITY_KEYS,
+        "densities",
+    )
+    return density_csv_filepath
+
+
+def display_download_links(density_csv_name, measurement_csv_name):
+    measurement_df = pd.read_csv("./output/temp/" + measurement_csv_name)
+    measurement_button = get_download_csv_button(
+        measurement_df,
+        measurement_csv_name,
+        "Download Pore Measurements",
+    )
+    density_df = pd.read_csv("./output/temp/" + density_csv_name)
+    density_button = get_download_csv_button(
+        density_df,
+        density_csv_name,
+        "Download Density Measurements",
+    )
+    show_side_by_side_buttons(measurement_button, density_button)
 
 
 def display_visualisation_options():
@@ -645,7 +668,7 @@ def draw_and_save_visualisation(image_name):
     record = utils.load_json(prediction_path)
     predictions = record["detections"]
     valid_indices = record["valid_detection_indices"]
-    valid_predictions = [predictions[i] for i in valid_indices]
+    valid_predictions = utils.select_predictions(predictions, valid_indices)
     # Draw onto axis
     draw_measurements(ax, valid_predictions)
     draw_bounding_boxes(ax, predictions)
