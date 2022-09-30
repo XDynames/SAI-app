@@ -166,7 +166,13 @@ def do_inference_on_all_images_in_folder():
         image = cv2.imread(directory + "/" + filename)
         image = image[:, :, [2, 1, 0]]
         predictions, time_elapsed, valid_indices = run_on_image(image)
-        record_predictions(predictions, filename, n_stoma, valid_indices)
+        record_predictions(
+            predictions,
+            filename,
+            n_stoma,
+            valid_indices,
+            image.shape,
+        )
 
         progress += increment
         progress_bar.progress(int(progress))
@@ -203,7 +209,13 @@ def is_supported_image_file(filename):
     return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
-def record_predictions(predictions, filename, n_stoma, valid_indices):
+def record_predictions(
+    predictions,
+    filename,
+    n_stoma,
+    valid_indices,
+    image_size,
+):
     path = "./output/temp/"
     predictions, valid_indices = predictions_to_list_of_dictionaries(
         predictions, valid_indices, n_stoma
@@ -212,6 +224,7 @@ def record_predictions(predictions, filename, n_stoma, valid_indices):
     to_save = {
         "detections": predictions,
         "valid_detection_indices": list(valid_indices),
+        "image_size": image_size[:-1],
     }
     with open(path + ".".join([filename, "json"]), "w") as file:
         json.dump(to_save, file)
@@ -569,14 +582,21 @@ def format_densities(predictions):
     densities = []
     for prediction in predictions:
         detections = prediction["detections"]
+        area = calculate_image_area(predictions["image_size"])
         n_stomata = len(detections)
         density = {
             "image_name": prediction["image_name"],
             "n_stomata": n_stomata,
-            "density": 0,
+            "density": n_stomata / area,
         }
         densities.append(density)
     return densities
+
+
+def calculate_image_area(image_size):
+    height = convert_to_SIU_length(image_size[0])
+    width = convert_to_SIU_length(image_size[1])
+    return height * width
 
 
 def write_density_csv(densities):
