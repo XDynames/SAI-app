@@ -59,3 +59,7 @@ def select_predictions(predictions, indices):
     predictions.pred_masks = predictions.pred_masks[indices]
     predictions.pred_keypoints = predictions.pred_keypoints[indices]
     predictions.scores = predictions.scores[indices]
+
+
+def select_predictions(predictions, indices):
+    return [predictions[i] for i in indices]

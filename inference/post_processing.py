@@ -4,13 +4,15 @@ import json
 
 import numpy as np
 import streamlit as st
-import torch
 from scipy.stats import iqr
 
-CLOSE_TO_EDGE_DISTANCE = 20
-CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.85
-SIZE_THRESHOLD = 0.3
-IOU_THRESHOLD = 0.2
+from tools.constants import (
+    CLOSE_TO_EDGE_DISTANCE,
+    CLOSE_TO_EDGE_SIZE_THRESHOLD,
+    SIZE_THRESHOLD,
+    IOU_THRESHOLD,
+)
+
 Predicted_Lengths = []
 
 
