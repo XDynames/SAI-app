@@ -41,6 +41,7 @@ def display_summary_names():
     st.write("Average Pore Length:")
     st.write("Average Pore Width:")
     st.write("Average Pore Area:")
+    st.write("Pore Density:")
 
 
 def display_ground_truth_summary_statistics():
@@ -71,6 +72,7 @@ def calculate_and_display_summary_statistics(annotations):
     display_average_length(annotations)
     display_average_width(annotations)
     display_average_area(annotations)
+    display_pore_density(annotations)
 
 
 def display_pore_count(annotations):

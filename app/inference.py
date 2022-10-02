@@ -582,7 +582,7 @@ def format_densities(predictions):
     densities = []
     for prediction in predictions:
         detections = prediction["detections"]
-        area = calculate_image_area(predictions["image_size"])
+        area = calculate_image_area(prediction["image_size"])
         n_stomata = len(detections)
         density = {
             "image_name": prediction["image_name"],
@@ -596,6 +596,8 @@ def format_densities(predictions):
 def calculate_image_area(image_size):
     height = convert_to_SIU_length(image_size[0])
     width = convert_to_SIU_length(image_size[1])
+    if Option_State["camera_calibration"] > 0:
+        height, width = height / 1000, width / 1000
     return height * width
 
 
