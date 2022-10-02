@@ -1,3 +1,4 @@
+from optparse import Option
 import streamlit as st
 
 from interface.example_images import (
@@ -60,10 +61,12 @@ def camera_calibration_textbox():
     )
     if Option_State["image_size"] is not None:
         image_size = Option_State["image_size"]
-        area = convert_to_SIU_length(image_size[0]) * convert_to_SIU_length(
-            image_size[1]
-        )
-        Option_State["image_area"] = area
+        height = convert_to_SIU_length(image_size[0])
+        width = convert_to_SIU_length(image_size[1])
+        if Option_State["camera_calibration"] > 0:
+            height /= 1000
+            width /= 1000
+        Option_State["image_area"] = width * height
 
 
 def convert_to_SIU_length(pixel_length):
