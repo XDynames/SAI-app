@@ -1,6 +1,5 @@
 import os
 import json
-from concurrent import futures
 
 import cv2
 import pandas as pd

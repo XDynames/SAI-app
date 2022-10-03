@@ -8,7 +8,11 @@ CLOSE_TO_EDGE_DISTANCE = 20
 # Percentile threshold
 CLOSE_TO_EDGE_SIZE_THRESHOLD = 0.85
 DENSITY_KEYS = ["image_name", "n_stomata", "density"]
-DENSITY_OUTPUT_COLUMNS = ["image_name", "number_of_stomata", "density"]
+DENSITY_OUTPUT_COLUMNS = [
+    "image name",
+    "number of stomata",
+    "density",
+]
 IOU_THRESHOLD = 0.2
 IMAGE_AREA = {
     "Barley": 0.3229496,
@@ -17,7 +21,7 @@ IMAGE_AREA = {
 IS_ONLINE = False
 MEASUREMENT_OUTPUT_COLUMN_NAMES = [
     "id",
-    "image_name",
+    "image name",
     "class",
     "length",
     "width",
