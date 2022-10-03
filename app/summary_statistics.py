@@ -47,7 +47,6 @@ def display_summary_names():
 def display_ground_truth_summary_statistics():
     ground_truth = get_ground_truth()
     st.write("Human Annotations")
-    display_pore_count(ground_truth)
     calculate_and_display_summary_statistics(ground_truth)
 
 
@@ -62,9 +61,9 @@ def display_prediction_summary_statistics(predictions=None):
             "valid_detection_indices"
         ]
         predictions = [predictions[i] for i in valid_indices]
+
     predictions = filter_low_confidence_predictions(predictions)
     predictions = filter_immature_stomata(predictions)
-
     calculate_and_display_summary_statistics(predictions)
 
 
@@ -76,6 +75,8 @@ def calculate_and_display_summary_statistics(annotations):
 
 
 def display_pore_count(annotations):
+    annotations = filter_low_confidence_predictions(annotations)
+    annotations = filter_immature_stomata(annotations)
     st.write(f"{len(annotations)}")
 
 
