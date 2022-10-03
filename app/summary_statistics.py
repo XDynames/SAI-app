@@ -6,7 +6,7 @@ from .example_images import (
     filter_immature_stomata,
     filter_low_confidence_predictions,
 )
-from tools.constants import IS_ONLINE
+from tools.constants import IS_ONLINE, IMAGE_AREA
 from tools.state import Option_State
 
 
@@ -47,6 +47,7 @@ def display_summary_names():
 def display_ground_truth_summary_statistics():
     ground_truth = get_ground_truth()
     st.write("Human Annotations")
+    display_pore_count(ground_truth)
     calculate_and_display_summary_statistics(ground_truth)
 
 
@@ -54,16 +55,17 @@ def display_prediction_summary_statistics(predictions=None):
     st.write("Model Estimates")
     if predictions is None:
         predictions = get_predictions()
-        display_pore_count(predictions)
+        filtered_predictions = apply_user_filters(predictions)
+        display_pore_count(filtered_predictions)
     else:
-        display_pore_count(predictions)
+        filtered_predictions = apply_user_filters(predictions)
+        display_pore_count(filtered_predictions)
         valid_indices = Option_State["uploaded_inference"][
             "valid_detection_indices"
         ]
         predictions = [predictions[i] for i in valid_indices]
 
-    predictions = filter_low_confidence_predictions(predictions)
-    predictions = filter_immature_stomata(predictions)
+    predictions = apply_user_filters(predictions)
     calculate_and_display_summary_statistics(predictions)
 
 
@@ -75,14 +77,23 @@ def calculate_and_display_summary_statistics(annotations):
 
 
 def display_pore_count(annotations):
-    annotations = filter_low_confidence_predictions(annotations)
-    annotations = filter_immature_stomata(annotations)
     st.write(f"{len(annotations)}")
 
 
+def apply_user_filters(predictions):
+    predictions = filter_low_confidence_predictions(predictions)
+    predictions = filter_immature_stomata(predictions)
+    return predictions
+
+
 def display_pore_density(annotations):
+    area = 0
     if is_valid_image_area():
         area = Option_State["image_area"]
+    elif utils.is_mode_view_examples():
+        area = IMAGE_AREA[Option_State["plant_type"]]
+
+    if area > 0.001:
         density = round(len(annotations) / area, 2)
         st.write(f"{density} stomata/mm\u00B2")
     else:
