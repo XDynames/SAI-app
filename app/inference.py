@@ -29,7 +29,10 @@ from interface.upload_folder import (
 )
 from inference.infer import run_on_image
 from inference.post_processing import (
-    Predicted_Lengths,
+    Bounding_Boxes,
+    Predicted_Pore_Lengths,
+    calculate_bbox_height,
+    calculate_bbox_width,
     remove_outliers_from_records,
 )
 
@@ -208,6 +211,16 @@ def is_supported_image_file(filename):
     return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
+def store_bounding_boxes(predictions):
+    for prediction in predictions:
+        Bounding_Boxes.append(
+            {
+                "height": calculate_bbox_height(prediction["bbox"]),
+                "width": calculate_bbox_width(prediction["bbox"]),
+            }
+        )
+
+
 def record_predictions(
     predictions,
     filename,
@@ -219,6 +232,7 @@ def record_predictions(
     predictions, valid_indices = predictions_to_list_of_dictionaries(
         predictions, valid_indices, n_stoma
     )
+    store_bounding_boxes(predictions)
     filename = remove_extension_from_filename(filename)
     to_save = {
         "detections": predictions,
@@ -302,7 +316,7 @@ def predictions_to_dictionary(i, predictions, n_stoma, valid_indices):
         "confidence": predictions.scores[i].item(),
     }
     if i in valid_indices:
-        Predicted_Lengths.append(pred_length)
+        Predicted_Pore_Lengths.append(pred_length)
     return prediction_dict
 
 
