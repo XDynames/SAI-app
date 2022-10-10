@@ -299,10 +299,12 @@ def remove_outlier_records(record, to_remove):
     to_remove, valid_indices, i = set(to_remove), [], 0
     for j in range(len(predictions)):
         if j in to_remove:
-            predictions.pop(j)
             i -= 1
         elif j in set_of_valid_indices:
             valid_indices.append(i)
         i += 1
+    for j in range(len(predictions))[::-1]:
+        if j in to_remove:
+            predictions.pop(j)
     record["detections"] = predictions
     record["valid_detection_indices"] = set(valid_indices)

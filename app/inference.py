@@ -300,7 +300,8 @@ def predictions_to_dictionary(i, predictions, n_stoma, valid_indices):
 
     width_length_ratio = calulate_width_over_length(pred_length, pred_width)
     if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
-        valid_indices.remove(i)
+        if i in valid_indices:
+            valid_indices.remove(i)
 
     prediction_dict = {
         "stoma_id": i + n_stoma,
