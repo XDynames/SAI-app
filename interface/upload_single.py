@@ -1,4 +1,3 @@
-from optparse import Option
 import streamlit as st
 
 from interface.example_images import (

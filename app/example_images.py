@@ -22,6 +22,7 @@ def is_drawing():
 
 def draw_example():
     image = get_selected_image()
+    image = image[:, :, [2, 1, 0]]
     update_image_size(image)
     fig, ax = setup_plot(image)
     draw_annotations_on_image(ax)
