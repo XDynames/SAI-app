@@ -166,7 +166,7 @@ def do_inference_on_all_images_in_folder():
     n_stoma = 0
     for filename in image_files:
         image = cv2.imread(directory + "/" + filename)
-        image = image[:, :, [2, 1, 0]]
+        # image = image[:, :, [2, 1, 0]]
         predictions, time_elapsed, valid_indices = run_on_image(image)
         record_predictions(
             predictions,
