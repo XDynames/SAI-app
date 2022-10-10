@@ -12,7 +12,7 @@ from tools.constants import (
     IOU_THRESHOLD,
 )
 
-Predicted_Lengths = []
+Predicted_Pore_Lengths, Bounding_Boxes = [], []
 
 
 def get_indices_of_valid_predictions(predictions):
@@ -86,8 +86,6 @@ def select_predictions(predictions, indices):
     predictions.scores = predictions.scores[indices]
 
 
-# TODO: Keep track of a list of invalid indices so that measurements
-#       can be removed but not detections from visuals/output data
 def get_indices_of_detections_away_from_edges(predictions):
     average_area = calculate_average_bbox_area(predictions)
     image_height, image_width = predictions.image_size
@@ -112,9 +110,17 @@ def calculate_average_bbox_area(predictions):
 
 
 def calculate_bbox_area(bbox):
-    width = abs(bbox[2] - bbox[0])
-    height = abs(bbox[3] - bbox[1])
+    width = calculate_bbox_width(bbox)
+    height = calculate_bbox_height(bbox)
     return width * height
+
+
+def calculate_bbox_height(bbox):
+    return abs(bbox[3] - bbox[1])
+
+
+def calculate_bbox_width(bbox):
+    return abs(bbox[2] - bbox[0])
 
 
 def is_bbox_near_edge(bbox, image_height, image_width):
@@ -159,8 +165,7 @@ def remove_outliers_from_records():
                 continue
             filepath = os.path.join(path, filename)
             record = load_json(filepath)
-            indices, length_predictions = extract_lengths(record)
-            remove_outliers(indices, length_predictions, record)
+            remove_outliers(record)
             write_to_json(record, filepath)
 
 
@@ -178,7 +183,7 @@ def unpack_predictions(record):
     return predictions
 
 
-def extract_lengths(record):
+def extract_pore_lengths(record):
     indices, lengths = [], []
     predictions = record["detections"]
     valid_indices = record["valid_detection_indices"]
@@ -189,10 +194,79 @@ def extract_lengths(record):
     return indices, lengths
 
 
-def remove_outliers(indices, lengths, record):
-    to_remove = find_outlier_indices(indices, lengths)
+def remove_outliers(record):
+    remove_pore_length_outliers(record)
+    remove_bounding_box_outliers(record)
+
+
+def remove_pore_length_outliers(record):
+    indices, length_predictions = extract_pore_lengths(record)
+    to_remove = find_outlier_indices(indices, length_predictions)
     for i in to_remove:
         record["valid_detection_indices"].remove(i)
+
+
+def remove_bounding_box_outliers(record):
+    remove_bounding_box_height_outliers(record)
+    remove_bounding_box_width_outliers(record)
+
+
+def remove_bounding_box_height_outliers(record):
+    heights = extract_bbox_heights(record)
+    minimum, maximum = calculate_bbox_height_limits()
+    to_remove = find_outlier_bbox_indices(heights, minimum, maximum)
+    remove_outlier_records(record, to_remove)
+
+
+def remove_bounding_box_width_outliers(record):
+    widths = extract_bbox_widths(record)
+    minimum, maximum = calculate_bbox_width_limits()
+    to_remove = find_outlier_bbox_indices(widths, minimum, maximum)
+    remove_outlier_records(record, to_remove)
+
+
+def extract_bbox_heights(record):
+    heights = []
+    predictions = record["detections"]
+    for prediction in predictions:
+        heights.append(calculate_bbox_height(prediction["bbox"]))
+    return heights
+
+
+def extract_bbox_widths(record):
+    widths = []
+    predictions = record["detections"]
+    for prediction in predictions:
+        widths.append(calculate_bbox_width(prediction["bbox"]))
+    return widths
+
+
+def find_outlier_bbox_indices(sizes, lower_bound, upper_bound):
+    to_remove = []
+    for i, size in enumerate(sizes):
+        if size < lower_bound:
+            to_remove.append(i)
+        if size > upper_bound:
+            to_remove.append(i)
+    return to_remove
+
+
+def calculate_bbox_height_limits():
+    heights = [bbox["height"] for bbox in Bounding_Boxes]
+    inter_quartile_range = iqr(heights, interpolation="midpoint")
+    median = np.median(heights)
+    lower_whisker = median - 2.0 * inter_quartile_range
+    upper_whisker = median + 2.0 * inter_quartile_range
+    return lower_whisker, upper_whisker
+
+
+def calculate_bbox_width_limits():
+    widths = [bbox["width"] for bbox in Bounding_Boxes]
+    inter_quartile_range = iqr(widths, interpolation="midpoint")
+    median = np.median(widths)
+    lower_whisker = median - 2.0 * inter_quartile_range
+    upper_whisker = median + 2.0 * inter_quartile_range
+    return lower_whisker, upper_whisker
 
 
 def find_outlier_indices(indices, lengths):
@@ -205,8 +279,10 @@ def find_outlier_indices(indices, lengths):
 
 
 def calculate_length_limit():
-    inter_quartile_range = iqr(Predicted_Lengths, interpolation="midpoint")
-    median = np.median(Predicted_Lengths)
+    inter_quartile_range = iqr(
+        Predicted_Pore_Lengths, interpolation="midpoint"
+    )
+    median = np.median(Predicted_Pore_Lengths)
     lower_whisker = median - 2.0 * inter_quartile_range
     return lower_whisker
 
@@ -215,3 +291,18 @@ def write_to_json(record, filepath):
     record["valid_detection_indices"] = list(record["valid_detection_indices"])
     with open(filepath, "w") as file:
         json.dump(record, file)
+
+
+def remove_outlier_records(record, to_remove):
+    predictions = record["detections"]
+    set_of_valid_indices = record["valid_detection_indices"]
+    to_remove, valid_indices, i = set(to_remove), [], 0
+    for j in range(len(predictions)):
+        if j in to_remove:
+            predictions.pop(j)
+            i -= 1
+        elif j in set_of_valid_indices:
+            valid_indices.append(i)
+        i += 1
+    record["detections"] = predictions
+    record["valid_detection_indices"] = set(valid_indices)
