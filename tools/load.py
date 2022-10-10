@@ -61,7 +61,6 @@ def read_byte_stream(bytestream):
 
 def preprocess_image(image):
     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    image = image[:, :, [2, 1, 0]]
     return image
 
 
