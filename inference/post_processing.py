@@ -165,7 +165,7 @@ def remove_outliers_from_records():
                 continue
             filepath = os.path.join(path, filename)
             record = load_json(filepath)
-            remove_outliers(record)
+            remove_outliers(record, filename)
             write_to_json(record, filepath)
 
 
@@ -194,7 +194,7 @@ def extract_pore_lengths(record):
     return indices, lengths
 
 
-def remove_outliers(record):
+def remove_outliers(record, filename):
     remove_pore_length_outliers(record)
     remove_bounding_box_outliers(record)
 
@@ -207,21 +207,42 @@ def remove_pore_length_outliers(record):
 
 
 def remove_bounding_box_outliers(record):
-    remove_bounding_box_height_outliers(record)
-    remove_bounding_box_width_outliers(record)
+    near_edge_indices = get_indices_of_near_edge_detections(record)
+    remove_bounding_box_height_outliers(record, near_edge_indices)
+    remove_bounding_box_width_outliers(record, near_edge_indices)
 
 
-def remove_bounding_box_height_outliers(record):
+def get_indices_of_near_edge_detections(record):
+    near_edge_indices = []
+    predictions = record["detections"]
+    image_size = record["image_size"]
+    for i, prediction in enumerate(predictions):
+        if is_bbox_near_edge(prediction["bbox"], image_size[0], image_size[1]):
+            near_edge_indices.append(i)
+    return set(near_edge_indices)
+
+
+def remove_bounding_box_height_outliers(record, near_edge_indices):
     heights = extract_bbox_heights(record)
     minimum, maximum = calculate_bbox_height_limits()
-    to_remove = find_outlier_bbox_indices(heights, minimum, maximum)
+    to_remove = find_outlier_bbox_indices(
+        heights,
+        minimum,
+        maximum,
+        near_edge_indices,
+    )
     remove_outlier_records(record, to_remove)
 
 
-def remove_bounding_box_width_outliers(record):
+def remove_bounding_box_width_outliers(record, near_edge_indices):
     widths = extract_bbox_widths(record)
     minimum, maximum = calculate_bbox_width_limits()
-    to_remove = find_outlier_bbox_indices(widths, minimum, maximum)
+    to_remove = find_outlier_bbox_indices(
+        widths,
+        minimum,
+        maximum,
+        near_edge_indices,
+    )
     remove_outlier_records(record, to_remove)
 
 
@@ -241,14 +262,34 @@ def extract_bbox_widths(record):
     return widths
 
 
-def find_outlier_bbox_indices(sizes, lower_bound, upper_bound):
-    to_remove = []
+def find_outlier_bbox_indices(
+    sizes,
+    lower_bound,
+    upper_bound,
+    near_edge_indices,
+):
+    to_remove = set()
     for i, size in enumerate(sizes):
-        if size < lower_bound:
-            to_remove.append(i)
-        if size > upper_bound:
-            to_remove.append(i)
-    return to_remove
+        if i not in near_edge_indices:
+            if (size < lower_bound) or (size > upper_bound):
+                to_remove.add(i)
+        else:
+            if is_less_than_half_of_average_size(
+                size,
+                sizes,
+                near_edge_indices,
+            ):
+                to_remove.add(i)
+    return list(to_remove)
+
+
+def is_less_than_half_of_average_size(size, sizes, near_edge_indices):
+    valid_sizes = []
+    for i, i_size in enumerate(sizes):
+        if i not in near_edge_indices:
+            valid_sizes.append(i_size)
+    average_size = sum(valid_sizes) / len(valid_sizes)
+    return size < (average_size * 0.5)
 
 
 def calculate_bbox_height_limits():
