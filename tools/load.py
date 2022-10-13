@@ -5,6 +5,7 @@ import requests
 import urllib
 import yaml
 from concurrent import futures
+from PIL import Image
 
 import cv2
 import numpy as np
@@ -51,12 +52,7 @@ def download_and_save_model_weights(url, filename):
 
 
 def decode_downloaded_image(bytestream):
-    array = read_byte_stream(bytestream)
-    return preprocess_image(array)
-
-
-def read_byte_stream(bytestream):
-    return np.asarray(bytearray(bytestream.read()), dtype="uint8")
+    return cv2.cvtColor(np.array(Image.open(bytestream)), cv2.COLOR_RGB2BGR)
 
 
 def preprocess_image(image):
