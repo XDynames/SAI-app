@@ -52,7 +52,9 @@ def _keypoints_to_heatmap(
     x[x_boundary_inds] = heatmap_size[1] - 1
     y[y_boundary_inds] = heatmap_size[0] - 1
 
-    valid_loc = (x >= 0) & (y >= 0) & (x < heatmap_size[1]) & (y < heatmap_size[0])
+    valid_loc = (
+        (x >= 0) & (y >= 0) & (x < heatmap_size[1]) & (y < heatmap_size[0])
+    )
     vis = keypoints[..., 2] > 0
     valid = (valid_loc & vis).long()
 
@@ -152,7 +154,9 @@ class KPROIHeads(StandardROIHeads):
         ret["keypoint_head"] = build_keypoint_head(
             cfg,
             ShapeSpec(
-                channels=in_channels, width=pooler_resolution, height=pooler_resolution
+                channels=in_channels,
+                width=pooler_resolution,
+                height=pooler_resolution,
             ),
         )
         return ret
@@ -180,12 +184,16 @@ class KRCNNConvHead(BaseKeypointRCNNHead):
 
         self.blocks = []
         for idx, layer_channels in enumerate(conv_dims, 1):
-            module = Conv2d(in_channels, layer_channels, 3, stride=1, padding=1)
+            module = Conv2d(
+                in_channels, layer_channels, 3, stride=1, padding=1
+            )
             self.add_module("conv_fcn{}".format(idx), module)
             self.blocks.append(module)
             in_channels = layer_channels
 
-        self.score_lowres = Conv2d(in_channels, num_keypoints, 3, stride=1, padding=1)
+        self.score_lowres = Conv2d(
+            in_channels, num_keypoints, 3, stride=1, padding=1
+        )
         self.up_scale = 2
 
         for name, param in self.named_parameters():
@@ -194,7 +202,9 @@ class KRCNNConvHead(BaseKeypointRCNNHead):
             elif "weight" in name:
                 # Caffe2 implementation uses MSRAFill, which in fact
                 # corresponds to kaiming_normal_ in PyTorch
-                nn.init.kaiming_normal_(param, mode="fan_out", nonlinearity="relu")
+                nn.init.kaiming_normal_(
+                    param, mode="fan_out", nonlinearity="relu"
+                )
 
         nn.init.normal_(self.score_lowres.weight, mean=0.0, std=0.0001)
 
@@ -225,7 +235,9 @@ class KRCNNConvHead(BaseKeypointRCNNHead):
                 else num_images * self.loss_normalizer
             )
             return {
-                "loss_keypoint": keypoint_rcnn_loss(x, instances, normalizer=normalizer)
+                "loss_keypoint": keypoint_rcnn_loss(
+                    x, instances, normalizer=normalizer
+                )
                 * self.loss_weight
             }
         else:

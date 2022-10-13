@@ -58,15 +58,25 @@ def is_supported_image(filename):
     return filename.split(".")[-1] in supported_files
 
 
-def show_download_csv_button(csv_download, csv_filename):
+def get_download_csv_button(csv_download, csv_filename, button_text):
     csv_download_button = download_button(
-        csv_download, csv_filename, "Download Measurements"
+        csv_download, csv_filename, button_text
     )
-    st.write(csv_download_button, unsafe_allow_html=True)
+    return csv_download_button
+
+
+def show_side_by_side_buttons(button_1, button_2):
+    columns = st.columns([1, 1])
+    with columns[0]:
+        st.write(button_1, unsafe_allow_html=True)
+    with columns[1]:
+        st.write(button_2, unsafe_allow_html=True)
 
 
 def show_save_visualisations_options():
-    output_path = os.path.join(Option_State["current_path"], "visualised_measurements")
+    output_path = os.path.join(
+        Option_State["current_path"], "visualised_measurements"
+    )
     Option_State["visualisation_path"] = st.text_input(
         "Enter the path where you want to save the images:", value=output_path
     )

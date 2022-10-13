@@ -33,13 +33,14 @@ def print_unavilable_message():
 
 def single_image_uploader():
     file_like_object = st.file_uploader(
-        "Upload Files", type=OPENCV_FILE_SUPPORT,
+        "Upload Files",
+        type=OPENCV_FILE_SUPPORT,
     )
     if file_like_object is not None:
         Option_State["uploaded_file"] = {
-            'image': decode_downloaded_image(file_like_object),
-            'name': file_like_object.name,
-            }
+            "image": decode_downloaded_image(file_like_object),
+            "name": file_like_object.name,
+        }
 
 
 def setup_upload_sidebar():
@@ -59,10 +60,12 @@ def camera_calibration_textbox():
     )
     if Option_State["image_size"] is not None:
         image_size = Option_State["image_size"]
-        area = convert_to_SIU_length(image_size[0]) * convert_to_SIU_length(
-            image_size[1]
-        )
-        Option_State["image_area"] = area
+        height = convert_to_SIU_length(image_size[0])
+        width = convert_to_SIU_length(image_size[1])
+        if Option_State["camera_calibration"] > 0:
+            height /= 1000
+            width /= 1000
+        Option_State["image_area"] = width * height
 
 
 def convert_to_SIU_length(pixel_length):

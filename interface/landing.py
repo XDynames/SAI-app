@@ -21,7 +21,9 @@ def dispaly_links():
     with columns[1]:
         st.markdown("[Application Code](https://github.com/XDynames/SAI-app)")
     with columns[2]:
-        st.markdown("[Deep Learning Code](https://github.com/XDynames/SAI-training)")
+        st.markdown(
+            "[Deep Learning Code](https://github.com/XDynames/SAI-training)"
+        )
 
 
 def display_logos():

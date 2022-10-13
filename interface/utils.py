@@ -9,7 +9,9 @@ import streamlit as st
 
 
 # From https://gist.github.com/chad-m/6be98ed6cf1c4f17d09b7f6e5ca2978f
-def download_button(object_to_download, download_filename, button_text, pickle_it=False):
+def download_button(
+    object_to_download, download_filename, button_text, pickle_it=False
+):
     """
     Generates a link to download the given object_to_download.
     Params:
@@ -53,8 +55,8 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
     except AttributeError as e:
         b64 = base64.b64encode(object_to_download).decode()
 
-    button_uuid = str(uuid.uuid4()).replace('-', '')
-    button_id = re.sub('\d+', '', button_uuid)
+    button_uuid = str(uuid.uuid4()).replace("-", "")
+    button_id = re.sub("\d+", "", button_uuid)
 
     custom_css = f""" 
         <style>
@@ -81,6 +83,9 @@ def download_button(object_to_download, download_filename, button_text, pickle_i
                 }}
         </style> """
 
-    dl_link = custom_css + f'<a download="{download_filename}" id="{button_id}" href="data:file/txt;base64,{b64}">{button_text}</a><br></br>'
+    dl_link = (
+        custom_css
+        + f'<a download="{download_filename}" id="{button_id}" href="data:file/txt;base64,{b64}">{button_text}</a><br></br>'
+    )
 
     return dl_link
