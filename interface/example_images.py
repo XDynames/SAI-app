@@ -79,9 +79,9 @@ def draw_predictions_enabled():
 def confidence_sliderbar():
     Option_State["confidence_threshold"] = st.sidebar.slider(
         "Confidence Threshold",
-        min_value=0.5,
+        min_value=0.6,
         max_value=1.0,
-        value=0.5,
+        value=0.6,
         step=0.05,
     )
 
