@@ -8,6 +8,7 @@ import shapely.geometry as shapes
 import streamlit as st
 from mask_to_polygons.vectorification import geometries_from_mask
 from matplotlib import pyplot as plt
+from PIL import Image
 from shapely import affinity
 from rasterio.transform import IDENTITY
 
@@ -165,7 +166,8 @@ def do_inference_on_all_images_in_folder():
 
     n_stoma = 0
     for filename in image_files:
-        image = cv2.imread(directory + "/" + filename)
+        image = np.array(Image.open(f"{directory}/{filename}"))
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         predictions, time_elapsed, valid_indices = run_on_image(image)
         record_predictions(
             predictions,
@@ -619,7 +621,7 @@ def write_density_csv(densities):
         densities,
         DENSITY_OUTPUT_COLUMNS,
         DENSITY_KEYS,
-        "densities",
+        "density",
     )
     return density_csv_filepath
 
