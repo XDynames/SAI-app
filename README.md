@@ -33,10 +33,31 @@ cd SAI-app
 SAI can either use a computer's CPU to process samples or its GPU. The GPU will be significantly faster but requires some extra installation steps:
 
 <details>
-    <summary>CPU only mode</summary>
-    
-    Ensure you have libgeos installed: `sudo apt install libgeos-dev`
-    Run `bash setup.sh`
+    <summary>CPU mode</summary>
+<details>
+	<summary>MacOS</summary>
+
+Ensure you have [Homebrew](https://brew.sh/) setup and install the following packages
+
+	brew install geos gdal
+If you have a Macbook that uses an Apple Silicone based CPU run
+
+	pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+
+</details>
+<details>
+	<summary>Windows and Linux</summary>
+
+Ensure you have libgeos installed:
+
+	sudo apt install libgeos-dev
+
+</details>
+
+Once the operation system specific steps are completed run:
+
+	bash setup.sh
+
 </details>
 
 <details>
@@ -71,3 +92,5 @@ If you use SAI as part of your work please cite us:
 	journal = {bioRxiv}
 }
 ```
+
+
