@@ -14,7 +14,7 @@ from tools.cloud_files import EXTERNAL_DEPENDANCIES
 from tools.load import download_and_save_yaml, download_and_save_model_weights
 from tools.state import Option_State
 
-BASE_CONFIDENCE_THRESHOLD = 0.5
+BASE_CONFIDENCE_THRESHOLD = 0.6
 Inference_Engines = {"Barley": None, "Arabidopsis": None}
 
 
