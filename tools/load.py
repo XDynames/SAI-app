@@ -18,7 +18,7 @@ from .state import Option_State
 @st.cache(show_spinner=True)
 def download_image(url):
     with urllib.request.urlopen(url) as response:
-        image = read_byte_stream(response)
+        image = decode_downloaded_image(response)
     image = preprocess_image(image)
     return image
 
