@@ -19,7 +19,6 @@ from .state import Option_State
 def download_image(url):
     with urllib.request.urlopen(url) as response:
         image = decode_downloaded_image(response)
-    image = preprocess_image(image)
     return image
 
 
