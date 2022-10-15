@@ -39,7 +39,7 @@ SAI can either use a computer's CPU to process samples or its GPU. The GPU will 
 
 Ensure you have [Homebrew](https://brew.sh/) setup and install the following packages
 
-	brew install geos gdal
+	brew install geos gdal libjpeg
 If you have a Macbook that uses an Apple Silicone based CPU run
 
 	pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu

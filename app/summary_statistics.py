@@ -41,7 +41,7 @@ def display_summary_names():
     st.write("Average Pore Length:")
     st.write("Average Pore Width:")
     st.write("Average Pore Area:")
-    st.write("Pore Density:")
+    st.write("Stomatal Density:")
 
 
 def display_ground_truth_summary_statistics():
