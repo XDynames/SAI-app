@@ -110,6 +110,7 @@ def maybe_do_inference_on_all_images_in_folder():
     if not is_inference_available_for_folder():
         if is_infer_button_pressed():
             clean_temporary_folder()
+            reset_tracked_predictions()
             do_inference_on_all_images_in_folder()
     if is_inference_available_for_folder():
         reset_predictions()
@@ -148,6 +149,11 @@ def is_infer_button_pressed():
     pressed = Option_State["infer_button"]
     Option_State["infer_button"] = False
     return pressed
+
+
+def reset_tracked_predictions():
+    Predicted_Pore_Lengths = []
+    Bounding_Boxes = []
 
 
 def do_inference_on_all_images_in_folder():
