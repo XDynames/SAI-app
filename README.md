@@ -9,12 +9,12 @@
 Open command prompt as administrator and run `wsl --install` to enable Windows subsytem for linux. After this completes windows will need to restart.
 Visit the Microsoft Store and install Ubuntu 20.04 LTS. Once the store has downloaded the application launch Ubuntu 20.04 LTS from the start menu.
 The first time you run the Ubuntu app it will need sometime to setup and ask you to create a username and password to use in the application.
-Install the required pre-requist packages by running the following commands:
+Install the required pre-requisite packages by running the following commands:
 ```
 sudo apt update
 sudo apt install python3-pip
 ```
-To ensure the python packages installed are accessable from the command line run:
+To ensure the python packages installed are accessible from the command line run:
 ```
 echo -e "\nexport PATH=/home/$USER/.local/bin:\$PATH" >> ~/.bashrc
 exec bash
@@ -68,10 +68,13 @@ Run `bash setup_gpu.sh` to install the remaining dependencies.
 </details>
 
 ## Running SAI
-Run `./SAI` while inside the checkouted folder. This will automatically open a webpage in your browser where you can view and use the application.
+Run `./SAI` while inside the checked out folder. This will automatically open a webpage in your browser where you can view and use the application.
 
 When using CPU only measurement time has been measured at 60-6 seconds per image, this is also dependant on image resolution.
-In GPU accelorated mode this time drops to 0.8-0.2 seconds per image.
+In GPU accelerated mode this time drops to 0.8-0.2 seconds per image.
+
+## Sample Images
+If you want to test some samples the images we used for validation can be downloaded from here for [Barley](https://cloudstor.aarnet.edu.au/plus/s/phlJcZkgS9y0fZd/download) and [Arabidopsis](https://cloudstor.aarnet.edu.au/plus/s/u3vy3YsGemQKgIJ/download)
 
 ## Tested On
 Windows: 10 & 11  
