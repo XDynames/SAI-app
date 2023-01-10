@@ -397,15 +397,15 @@ def find_CD(polygon, keypoints=None):
     if intersections.is_empty or type(intersections) is shapes.Point:
         return [-1, -1, 1, -1, -1, 1]
     # If there are multiple intersections, pick the largest
-    if len(intersections) > 2:
+    if len(intersections.geoms) > 2:
         intersections = select_longest_line(intersections)
 
-    if intersections[0].coords.xy[1] > intersections[1].coords.xy[1]:
-        D = intersections[0].coords.xy
-        C = intersections[1].coords.xy
+    if intersections.geoms[0].coords.xy[1] > intersections.geoms[1].coords.xy[1]:
+        D = intersections.geoms[0].coords.xy
+        C = intersections.geoms[1].coords.xy
     else:
-        D = intersections[1].coords.xy
-        C = intersections[0].coords.xy
+        D = intersections.geoms[1].coords.xy
+        C = intersections.geoms[0].coords.xy
     return [C[0][0], C[1][0], 1, D[0][0], D[1][0], 1]
 
 
