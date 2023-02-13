@@ -411,8 +411,8 @@ def find_CD(polygon, keypoints=None):
 
 def select_longest_line(multipoint):
     lines, lengths = [], []
-    for i, point_1 in enumerate(multipoint):
-        for point_2 in multipoint[i + 1 :]:
+    for i, point_1 in enumerate(multipoint.geoms):
+        for point_2 in multipoint.geoms[i + 1 :].geoms:
             lines.append(shapes.LineString([point_1, point_2]))
             lengths.append(lines[-1].length)
     longest_line_idx = max(range(len(lengths)), key=lambda i: lengths[i])
