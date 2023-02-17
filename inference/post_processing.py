@@ -288,7 +288,10 @@ def is_less_than_half_of_average_size(size, sizes, near_edge_indices):
     for i, i_size in enumerate(sizes):
         if i not in near_edge_indices:
             valid_sizes.append(i_size)
-    average_size = sum(valid_sizes) / len(valid_sizes)
+    if len(valid_sizes) == 0:
+        average_size = 0.0
+    else:
+        average_size = sum(valid_sizes) / len(valid_sizes)
     return size < (average_size * 0.5)
 
 
