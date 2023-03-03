@@ -84,15 +84,17 @@ MacOS: BigSur & Monterey
 ## Referencing
 If you use SAI as part of your work please cite us:
 ```
-@article {Sai2022.02.07.479482,
-	author = {Sai, Na and Bockman, James Paul and Chen, Hao and Watson-Haigh, Nathan and Xu, Bo and Feng, Xueying and Piechatzek, Adriane and Shen, Chunhua and Gilliham, Matthew},
-	title = {SAI: Fast and automated quantification of stomatal parameters on microscope images},
-	elocation-id = {2022.02.07.479482},
-	year = {2022},
-	doi = {10.1101/2022.02.07.479482},
-	URL = {https://www.biorxiv.org/content/early/2022/02/10/2022.02.07.479482},
-	eprint = {https://www.biorxiv.org/content/early/2022/02/10/2022.02.07.479482.full.pdf},
-	journal = {bioRxiv}
+@article{https://doi.org/10.1111/nph.18765,
+author = {Sai, Na and Bockman, James Paul and Chen, Hao and Watson-Haigh, Nathan and Xu, Bo and Feng, Xueying and Piechatzek, Adriane and Shen, Chunhua and Gilliham, Matthew},
+title = {StomaAI: an efficient and user-friendly tool for measurement of stomatal pores and density using deep computer vision},
+journal = {New Phytologist},
+volume = {n/a},
+number = {n/a},
+pages = {},
+keywords = {applied deep learning, computer vision, convolutional neural network, phenotyping, stomata},
+doi = {https://doi.org/10.1111/nph.18765},
+url = {https://nph.onlinelibrary.wiley.com/doi/abs/10.1111/nph.18765},
+eprint = {https://nph.onlinelibrary.wiley.com/doi/pdf/10.1111/nph.18765},
 }
 ```
 
