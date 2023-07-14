@@ -7,3 +7,4 @@ shapely>=1.6.4
 rasterio>=1.2.3
 geojson
 scipy
+pyyaml
