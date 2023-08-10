@@ -15,14 +15,14 @@ from .cloud_files import IMAGE_DICTS
 from .state import Option_State
 
 
-@st.cache(show_spinner=True)
+@st.cache_data(show_spinner=True)
 def download_image(url):
     with urllib.request.urlopen(url) as response:
         image = decode_downloaded_image(response)
     return image
 
 
-@st.cache(show_spinner=True)
+@st.cache_data(show_spinner=True)
 def download_json(url):
     with urllib.request.urlopen(url) as response:
         downloaded_json = json.loads(response.read())
