@@ -1,3 +1,5 @@
+HOST_URL_ROOT = "https://adelaide.figshare.com/ndownloader/files"
+
 IMAGE_DICTS = {
     "Barley": {
         "10Dec 19": {
@@ -181,9 +183,9 @@ IMAGE_DICTS = {
 }
 
 EXTERNAL_DEPENDANCIES = {
-    "base_config": "https://cloudstor.aarnet.edu.au/plus/s/WWGw6Pjt7czIjDc",
-    "Barley_weights": "https://cloudstor.aarnet.edu.au/plus/s/KWFjWBLlE18n9M9",
-    "Barley_config": "https://cloudstor.aarnet.edu.au/plus/s/qJztazXzBeOLO7E",
-    "Arabidopsis_weights": "https://cloudstor.aarnet.edu.au/plus/s/iLB4PwuKqjbdSWg",
-    "Arabidopsis_config": "https://cloudstor.aarnet.edu.au/plus/s/wrWnwgdVDNaCFRC",
+    "base_config": f"{HOST_URL_ROOT}/44321576",
+    "Barley_weights": f"{HOST_URL_ROOT}/44321708",
+    "Barley_config": f"{HOST_URL_ROOT}/44321573",
+    "Arabidopsis_weights": f"{HOST_URL_ROOT}/44321711",
+    "Arabidopsis_config": f"{HOST_URL_ROOT}/44321570",
 }

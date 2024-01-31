@@ -41,7 +41,7 @@ def get_local_image_path():
 
 def download_example():
     urls = utils.get_current_image_urls()
-    return download_image(urls["image"] + "/download")
+    return download_image(urls["image"])
 
 
 def get_uploaded_image():

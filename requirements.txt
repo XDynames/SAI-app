@@ -8,3 +8,4 @@ rasterio>=1.2.3
 geojson
 scipy
 pyyaml
+watchdog

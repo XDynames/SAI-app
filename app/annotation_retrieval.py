@@ -32,7 +32,7 @@ def get_local_predictions_path():
 
 def download_predictions():
     urls = utils.get_current_image_urls()
-    return download_json(urls["predictions"] + "/download")
+    return download_json(urls["predictions"])
 
 
 def get_ground_truth():
@@ -61,4 +61,4 @@ def load_ground_truth():
 
 def download_ground_truth():
     urls = utils.get_current_image_urls()
-    return download_json(urls["ground_truth"] + "/download")
+    return download_json(urls["ground_truth"])
