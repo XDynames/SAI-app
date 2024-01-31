@@ -74,7 +74,7 @@ When using CPU only measurement time has been measured at 60-6 seconds per image
 In GPU accelerated mode this time drops to 0.8-0.2 seconds per image.
 
 ## Sample Images
-If you want to test some samples the images we used for validation can be downloaded from here for [Barley](https://cloudstor.aarnet.edu.au/plus/s/phlJcZkgS9y0fZd/download) and [Arabidopsis](https://cloudstor.aarnet.edu.au/plus/s/u3vy3YsGemQKgIJ/download)
+If you want to test some samples the images we used for validation can be downloaded from here for [Barley](https://adelaide.figshare.com/ndownloader/files/44323397) and [Arabidopsis](https://adelaide.figshare.com/ndownloader/files/44323391)
 
 ## Tested On
 Windows: 10 & 11  
