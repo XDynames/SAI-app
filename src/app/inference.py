@@ -56,10 +56,7 @@ from tools.state import Option_State
 def maybe_do_inference():
     if utils.is_file_uploaded() and utils.is_mode_upload_an_example():
         maybe_do_single_image_inference()
-    if (
-        utils.is_image_folder_avaiable()
-        and utils.is_mode_upload_multiple_images()
-    ):
+    if utils.is_image_folder_avaiable() and utils.is_mode_upload_multiple_images():
         maybe_do_inference_on_all_images_in_folder()
 
 
@@ -94,9 +91,7 @@ def is_upload_inference_available():
 
 def is_inference_for_the_current_file():
     currently_uploaded_filename = Option_State["uploaded_file"]["name"]
-    filename_of_available_inference = Option_State["uploaded_inference"][
-        "name"
-    ]
+    filename_of_available_inference = Option_State["uploaded_inference"]["name"]
     return currently_uploaded_filename == filename_of_available_inference
 
 
@@ -285,9 +280,7 @@ def predictions_to_dictionary(i, predictions, n_stoma, valid_indices):
             pred_CD = find_CD(pred_polygon, pred_AB)
             pred_length = l2_dist(pred_AB)
 
-        width_length_ratio = calulate_width_over_length(
-            pred_length, l2_dist(pred_CD)
-        )
+        width_length_ratio = calulate_width_over_length(pred_length, l2_dist(pred_CD))
         if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
             pred_AB = get_AB_from_polygon(pred_polygon)
             pred_CD = find_CD(pred_polygon, pred_AB)
@@ -474,9 +467,7 @@ def l2_dist(keypoints):
 
 
 def reset_predictions():
-    Option_State["folder_inference"][
-        "predictions"
-    ] = load_all_saved_predictions()
+    Option_State["folder_inference"]["predictions"] = load_all_saved_predictions()
 
 
 def apply_user_settings():

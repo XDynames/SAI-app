@@ -1,2 +1,3 @@
 #!/bin/bash
+cd src
 streamlit run main.py
