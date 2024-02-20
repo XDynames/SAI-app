@@ -5,6 +5,10 @@ services:
       dockerfile: ./docker/Dockerfile
     image: sai-app
     container_name: sai-app
+    volumes:
+      - ../src/assets:/code/src/assets
+      - ../src/output:/code/src/output
+      - ../../stoma_data/:/data
     ports:
       - 80:8501
     deploy:
