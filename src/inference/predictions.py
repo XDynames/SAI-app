@@ -7,11 +7,11 @@ from inference.constants import (
     NAMES_TO_CATEGORY_ID,
     MINIMUM_LENGTH,
     WIDTH_OVER_LENGTH_THRESHOLD,
+    ORPHAN_AREA_THRESHOLD,
 )
 from inference.initial_filter import (
     filter_invalid_predictions,
     is_stomatal_pore,
-    is_bbox_a_in_bbox_b,
 )
 from inference.utils import (
     calculate_bbox_height,
@@ -20,6 +20,8 @@ from inference.utils import (
     extract_AB_from_polygon,
     find_CD,
     is_stomata_complex,
+    is_bbox_a_in_bbox_b,
+    is_bbox_a_mostly_in_bbox_b,
     l2_dist,
 )
 
@@ -90,16 +92,9 @@ class ModelOutput:
 
     def _get_guard_cell_polygon(self, mask: GenericMask) -> Dict:
         if len(mask.polygons) > 1:
-            guard_cell_polygon = {
-                "external": mask.polygons[0].tolist(),
-                "internal": mask.polygons[1].tolist(),
-            }
-        else:
-            guard_cell_polygon = {
-                "external": mask.polygons[0].tolist(),
-                "internal": [],
-            }
-        return guard_cell_polygon
+            # TODO: Find maximum area polygon at hierarchy 1
+            return mask.polygons[0].tolist()
+        return mask.polygons[0].tolist()
 
     def _add_pore(self, i: int, prediction: Dict):
         if self._is_open_stomata(prediction):
@@ -124,7 +119,7 @@ class ModelOutput:
 
     def _find_pore(self, i: int) -> Union[int, None]:
         stomata_bbox = self._get_bounding_box(i)
-        for j in range(self.n_predictions):
+        for j in range(self._n_predictions):
             if is_stomatal_pore(j, self._predictions):
                 pore_bbox = self._get_bounding_box(j)
                 if is_bbox_a_in_bbox_b(pore_bbox, stomata_bbox):
@@ -197,7 +192,7 @@ class ModelOutput:
         subsidiary_area = 0.0
         for subsidiary_cell in self._get_subsidiary_cells(i):
             polygon = subsidiary_cell.polygons[0].tolist()
-            subsidiary_area += subsidiary_cell["mask"].area()
+            subsidiary_area += subsidiary_cell.area()
             subsidiary_polygons.append(polygon)
         prediction.update(
             {
@@ -218,10 +213,14 @@ class ModelOutput:
     def _find_subsidiary_cells(self, i: int) -> Union[List[int], None]:
         subsidiary_cell_indices = []
         stomata_bbox = self._get_bounding_box(i)
-        for j in range(self.n_predictions):
+        for j in range(self._n_predictions):
             if self._is_subsidiary_cell(j):
                 cell_bbox = self._get_bounding_box(j)
-                if is_bbox_a_in_bbox_b(cell_bbox, stomata_bbox):
+                if is_bbox_a_mostly_in_bbox_b(
+                    cell_bbox,
+                    stomata_bbox,
+                    ORPHAN_AREA_THRESHOLD,
+                ):
                     subsidiary_cell_indices.append(j)
         return subsidiary_cell_indices
 

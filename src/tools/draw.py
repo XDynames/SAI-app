@@ -2,9 +2,18 @@ import matplotlib as mpl
 
 
 def masks(mpl_axis, annotations, gt):
-    colour = "red" if gt else "blue"
     for annotation in annotations:
-        draw_masks(mpl_axis, annotation, colour)
+        if annotation["guard_cell_polygon"]:
+            polygon = annotation["guard_cell_polygon"]
+            draw_mask(mpl_axis, polygon, "xkcd:orange")
+
+        if annotation["pore_polygon"]:
+            polygon = annotation["pore_polygon"]
+            draw_mask(mpl_axis, polygon, "xkcd:teal")
+
+        if annotation["subsidiary_cell_polygons"]:
+            for polygon in annotation["subsidiary_cell_polygons"]:
+                draw_mask(mpl_axis, polygon, "xkcd:fuchsia")
 
 
 def keypoints(mpl_axis, annotations, gt):
@@ -14,7 +23,7 @@ def keypoints(mpl_axis, annotations, gt):
 
 def bboxes(mpl_axis, annotations, gt):
     for annotation in annotations:
-        edgecolour = "green" if annotation["category_id"] else "orange"
+        edgecolour = "xkcd:green" if annotation["category_id"] else "xkcd:purple"
         draw_bbox(mpl_axis, annotation, edgecolour, gt)
 
 
@@ -57,24 +66,30 @@ def draw_bbox(mpl_axis, annotation, colour, gt):
         height = y2 - y1
         text_position = (x1, y1)
         alignment = "left"
-        confidence = round(annotation["confidence"] * 100, 1)
+        confidence = round(annotation["confidence"] * 100, 0)
         text = f"{label} {confidence}%"
 
     draw_box(mpl_axis, (x1, y1), width, height, colour)
     draw_label(mpl_axis, text_position, text, alignment)
 
 
-def draw_masks(mpl_axis, annotation, colour):
-    segment = annotation["segmentation"][0]
-    if not segment:
-        return
-    segment = format_polygon_coordinates(segment)
+def draw_mask(mpl_axis, polygon, colour):
+    polygon = format_polygon_coordinates(polygon)
     mpl_axis.add_patch(
         mpl.patches.Polygon(
-            segment,
+            polygon,
             fill=True,
             alpha=0.5,
             facecolor=colour,
+            edgecolor=colour,
+            linewidth=0.0,
+        )
+    )
+    mpl_axis.add_patch(
+        mpl.patches.Polygon(
+            polygon,
+            fill=False,
+            alpha=1.0,
             edgecolor=colour,
             linewidth=0.5,
         )
@@ -123,7 +138,7 @@ def draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt):
     draw_points(mpl_axis, zip(keypoints_x, keypoints_y), colour)
 
 
-def draw_points(mpl_axis, keypoints, colour, radius=2):
+def draw_points(mpl_axis, keypoints, colour, radius=1.0):
     for keypoint in keypoints:
         mpl_axis.add_patch(
             mpl.patches.Circle(
@@ -154,8 +169,8 @@ def draw_box(mpl_axis, position, width, height, edgecolour):
             height,
             fill=False,
             edgecolor=edgecolour,
-            linewidth=1,
-            alpha=0.5,
+            linewidth=0.75,
+            alpha=1,
         )
     )
 
@@ -169,11 +184,11 @@ def draw_label(mpl_axis, position, text, horizontal_alignment):
         family="sans-serif",
         bbox={
             "facecolor": "black",
-            "alpha": 0.8,
-            "pad": 0.7,
+            "alpha": 1.0,
+            "pad": 0.3,
             "edgecolor": "none",
         },
-        verticalalignment="top",
+        verticalalignment="bottom",
         color="white",
         horizontalalignment=horizontal_alignment,
     )
