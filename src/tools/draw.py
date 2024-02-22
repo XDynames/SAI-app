@@ -1,11 +1,15 @@
 import matplotlib as mpl
+import streamlit as st
+from shapely.geometry import Polygon
+from shapely.plotting import plot_polygon
 
 
 def masks(mpl_axis, annotations, gt):
     for annotation in annotations:
-        if annotation["guard_cell_polygon"]:
-            polygon = annotation["guard_cell_polygon"]
-            draw_mask(mpl_axis, polygon, "xkcd:orange")
+        if annotation["guard_cell_polygon"]["exterior"]:
+            exterior = annotation["guard_cell_polygon"]["exterior"]
+            interior = annotation["guard_cell_polygon"]["interior"]
+            draw_mask_with_holes(mpl_axis, exterior, interior, "xkcd:orange")
 
         if annotation["pore_polygon"]:
             polygon = annotation["pore_polygon"]
@@ -211,3 +215,39 @@ def draw_legend_text(mpl_axis, position, text):
         color="black",
         horizontalalignment="left",
     )
+
+
+def draw_mask_with_holes(mpl_axis, exterior, interior, colour):
+    exterior_polygon = format_polygon_coordinates(exterior)
+    if interior:
+        interior_polygon = [format_polygon_coordinates(interior)]
+    else:
+        interior_polygon = None
+    polygon = Polygon(exterior_polygon, holes=interior_polygon)
+    plot_polygon(
+        polygon,
+        ax=mpl_axis,
+        add_points=False,
+        facecolor=colour,
+        alpha=0.5,
+        linewidth=0.0,
+    )
+    mpl_axis.add_patch(
+        mpl.patches.Polygon(
+            exterior_polygon,
+            fill=False,
+            alpha=1.0,
+            edgecolor=colour,
+            linewidth=0.5,
+        )
+    )
+    if interior_polygon is not None:
+        mpl_axis.add_patch(
+            mpl.patches.Polygon(
+                interior_polygon[0],
+                fill=False,
+                alpha=1.0,
+                edgecolor=colour,
+                linewidth=0.5,
+            )
+        )

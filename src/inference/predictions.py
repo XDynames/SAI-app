@@ -1,7 +1,11 @@
+import copy
 from typing import Dict, List, Union
 
-from detectron2.utils.visualizer import GenericMask
+import numpy as np
+import shapely
 import streamlit as st
+from detectron2.utils.visualizer import GenericMask
+from shapely.geometry import Polygon
 
 from inference.constants import (
     NAMES_TO_CATEGORY_ID,
@@ -24,6 +28,7 @@ from inference.utils import (
     is_bbox_a_mostly_in_bbox_b,
     l2_dist,
 )
+from tools.draw import format_polygon_coordinates
 
 
 class ModelOutput:
@@ -81,20 +86,29 @@ class ModelOutput:
         prediction["confidence"] = self._get_confidence(i)
 
     def _add_guard_cells(self, i: int, prediction: Dict):
+        interior = []
         guard_cell_mask = self._get_mask(i)
-        guard_cell_polygon = self._get_guard_cell_polygon(guard_cell_mask)
+        guard_cell_polygons = copy.deepcopy(guard_cell_mask.polygons)
+        exterior_polygon = self._select_largest_polygon(guard_cell_polygons)
+        shapely_exterior = Polygon(format_polygon_coordinates(exterior_polygon))
+        for guard_cell_polygon in guard_cell_polygons:
+            polygon = Polygon(format_polygon_coordinates(guard_cell_polygon))
+            if shapely.within(polygon, shapely_exterior):
+                interior = guard_cell_polygon.tolist()
         prediction.update(
             {
                 "guard_cell_area": guard_cell_mask.area(),
-                "guard_cell_polygon": guard_cell_polygon,
+                "guard_cell_polygon": {
+                    "exterior": exterior_polygon,
+                    "interior": interior,
+                },
             }
         )
 
-    def _get_guard_cell_polygon(self, mask: GenericMask) -> Dict:
-        if len(mask.polygons) > 1:
-            # TODO: Find maximum area polygon at hierarchy 1
-            return mask.polygons[0].tolist()
-        return mask.polygons[0].tolist()
+    def _select_largest_polygon(self, polygons: List[GenericMask]) -> GenericMask:
+        tmp_polygons = [format_polygon_coordinates(polygon) for polygon in polygons]
+        i_max = np.argmax([Polygon(polygon).area for polygon in tmp_polygons])
+        return polygons.pop(i_max).tolist()
 
     def _add_pore(self, i: int, prediction: Dict):
         if self._is_open_stomata(prediction):
@@ -130,7 +144,7 @@ class ModelOutput:
         mask = self._get_mask(i)
         pore = {
             "pore_area": mask.area(),
-            "pore_polygon": mask.polygons[0].tolist(),
+            "pore_polygon": self._select_largest_polygon(mask.polygons),
         }
         return pore
 
@@ -191,7 +205,7 @@ class ModelOutput:
         subsidiary_polygons = []
         subsidiary_area = 0.0
         for subsidiary_cell in self._get_subsidiary_cells(i):
-            polygon = subsidiary_cell.polygons[0].tolist()
+            polygon = self._select_largest_polygon(subsidiary_cell.polygons)
             subsidiary_area += subsidiary_cell.area()
             subsidiary_polygons.append(polygon)
         prediction.update(
