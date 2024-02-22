@@ -1,10 +1,24 @@
-from typing import List, Union
+import os
+from typing import List
 
 import streamlit as st
 import shapely.geometry as shapes
 from shapely import affinity
 
 from inference.constants import IOU_THRESHOLD, NAMES_TO_CATEGORY_ID
+from tools.constants import OPENCV_FILE_SUPPORT
+
+
+def get_list_of_images_in_folder(folder_path):
+    filenames = os.listdir(folder_path)
+    image_files = [
+        filename for filename in filenames if is_supported_image_file(filename)
+    ]
+    return image_files
+
+
+def is_supported_image_file(filename):
+    return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
 def is_stomatal_pore(i, predictions) -> bool:

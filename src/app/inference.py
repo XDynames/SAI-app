@@ -5,16 +5,12 @@ import cv2
 import pandas as pd
 import numpy as np
 import streamlit as st
-from matplotlib import pyplot as plt
 from PIL import Image
 
 from app import utils
 from app.example_images import (
-    draw_bounding_boxes,
-    draw_measurements,
     filter_immature_stomata,
     filter_low_confidence_predictions,
-    setup_plot,
 )
 from app.image_retrieval import get_selected_image
 from app.summary_statistics import is_valid_calibration
@@ -30,18 +26,10 @@ from inference.population_filtering import (
     Predicted_Pore_Lengths,
     remove_outliers_from_records,
 )
-
-from tools.constants import (
-    DENSITY_KEYS,
-    DENSITY_OUTPUT_COLUMNS,
-    MEASUREMENT_KEYS,
-    MEASUREMENT_OUTPUT_COLUMN_NAMES,
-    OPENCV_FILE_SUPPORT,
-)
-from tools.load import (
-    clean_temporary_folder,
-    maybe_create_visualisation_folder,
-)
+from inference.utils import get_list_of_images_in_folder
+from inference.output import create_output_csvs
+from inference.visualisation import maybe_visualise_and_save
+from tools.load import clean_temporary_folder
 from tools.state import Option_State
 
 
@@ -158,11 +146,7 @@ def do_inference_on_all_images_in_folder():
         image = np.array(Image.open(f"{directory}/{filename}"))
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         predictions, time_elapsed = run_on_image(image, n_stoma)
-        record_predictions(
-            predictions,
-            filename,
-            image.shape,
-        )
+        record_predictions(predictions, filename, image.shape)
 
         progress += increment
         progress_bar.progress(int(progress))
@@ -185,18 +169,6 @@ def do_inference_on_all_images_in_folder():
         "model_used": Option_State["plant_type"],
         "predictions": load_all_saved_predictions(),
     }
-
-
-def get_list_of_images_in_folder(folder_path):
-    filenames = os.listdir(folder_path)
-    image_files = [
-        filename for filename in filenames if is_supported_image_file(filename)
-    ]
-    return image_files
-
-
-def is_supported_image_file(filename):
-    return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
 def record_predictions(
@@ -270,15 +242,6 @@ def convert_measurements(predictions):
     return predictions
 
 
-def create_output_csvs():
-    predictions = Option_State["folder_inference"]["predictions"]
-    formatted_predictions = format_predictions(predictions)
-    measurement_csv_filename = write_measurements_to_csv(formatted_predictions)
-    densities = format_densities(predictions)
-    density_csv_filename = write_density_csv(densities)
-    return density_csv_filename, measurement_csv_filename
-
-
 def load_all_saved_predictions():
     directory = "./output/temp/"
     files = os.listdir(directory)
@@ -291,91 +254,6 @@ def load_all_saved_predictions():
             image_data["image_name"] = file[:-5]
             image_detections.append(image_data)
     return image_detections
-
-
-def format_predictions(predictions):
-    stoma_measurements = []
-    for prediction in predictions:
-        image_name = prediction["image_name"]
-        detections = prediction["detections"]
-        for detection in detections:
-            measurements = {
-                "stoma_id": detection["stoma_id"],
-                "pore_width": detection["pore_width"],
-                "pore_length": detection["pore_length"],
-                "pore_area": detection["pore_area"],
-                "subsidiary_cell_area": detection["subsidiary_cell_area"],
-                "guard_cell_area": detection["guard_cell_area"],
-                "class": "open" if detection["category_id"] else "closed",
-                "confidence": detection["confidence"],
-                "image_name": image_name,
-                "pore_width_to_length_ratio": detection["width_over_length"],
-            }
-            stoma_measurements.append(measurements)
-    return stoma_measurements
-
-
-def write_measurements_to_csv(measurements):
-    measurement_csv_filepath = write_output_csv(
-        measurements,
-        MEASUREMENT_OUTPUT_COLUMN_NAMES,
-        MEASUREMENT_KEYS,
-        "pore_measurements",
-    )
-    return measurement_csv_filepath
-
-
-def write_output_csv(measurements, column_names, column_keys, name):
-    csv = ",".join(column_names) + "\n"
-    for measurement in measurements:
-        values = []
-        for key in column_keys:
-            values.append(measurement[key])
-        values = [str(x) for x in values]
-        csv += ",".join(values) + "\n"
-
-    path = Option_State["folder_path"]
-    if os.path.basename(path) == "":
-        directory_name = os.path.basename(os.path.dirname(path))
-    else:
-        directory_name = os.path.basename(path)
-    filename = f"{name}_{directory_name}.csv"
-    with open(f"./output/temp/{filename}", "w") as file:
-        file.write(csv)
-    return filename
-
-
-def format_densities(predictions):
-    densities = []
-    for prediction in predictions:
-        detections = prediction["detections"]
-        area = calculate_image_area(prediction["image_size"])
-        n_stomata = len(detections)
-        density = {
-            "image_name": prediction["image_name"],
-            "n_stomata": n_stomata,
-            "density": n_stomata / area,
-        }
-        densities.append(density)
-    return densities
-
-
-def calculate_image_area(image_size):
-    height = convert_to_SIU_length(image_size[0])
-    width = convert_to_SIU_length(image_size[1])
-    if Option_State["camera_calibration"] > 0:
-        height, width = height / 1000, width / 1000
-    return height * width
-
-
-def write_density_csv(densities):
-    density_csv_filepath = write_output_csv(
-        densities,
-        DENSITY_OUTPUT_COLUMNS,
-        DENSITY_KEYS,
-        "density",
-    )
-    return density_csv_filepath
 
 
 def display_download_links(density_csv_name, measurement_csv_name):
@@ -396,63 +274,3 @@ def display_download_links(density_csv_name, measurement_csv_name):
 
 def display_visualisation_options():
     show_save_visualisations_options()
-
-
-def maybe_visualise_and_save():
-    if Option_State["visualise"]:
-        maybe_create_visualisation_folder()
-        visualise_and_save()
-        Option_State["visualise"] = False
-
-
-def visualise_and_save():
-    visualisation_folder = Option_State["visualisation_path"]
-    image_folder = Option_State["folder_path"]
-    image_names = get_list_of_images_in_folder(image_folder)
-
-    status_container = st.empty()
-    progress = 0
-    progress_bar_header = st.empty()
-    with progress_bar_header:
-        st.write(f"Visualising {len(image_names)} images...")
-    progress_bar = st.progress(progress)
-    increment = 100 / len(image_names)
-
-    for image_name in image_names:
-        draw_and_save_visualisation(image_name)
-        progress += increment
-        progress_bar.progress(int(progress))
-
-    progress_bar.progress(100)
-    progress_bar.empty()
-    progress_bar_header.empty()
-    with status_container:
-        st.success(
-            f"{len(image_names)} visualised images are now saved in {visualisation_folder}"
-        )
-
-
-def draw_and_save_visualisation(image_name):
-    output_path = Option_State["visualisation_path"]
-    input_path = Option_State["folder_path"]
-    # Load image
-    image = cv2.imread(os.path.join(input_path, image_name))
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # Create matplot lib axis
-    fig, ax = setup_plot(image)
-    # Load images measurements
-    predictions_filename = image_name.split(".")[0] + ".json"
-    prediction_path = os.path.join("./output/temp/", predictions_filename)
-    record = utils.load_json(prediction_path)
-    predictions = record["detections"]
-    # Draw onto axis
-    draw_measurements(ax, predictions)
-    draw_bounding_boxes(ax, predictions)
-    # Save drawing
-    fig.savefig(
-        os.path.join(output_path, image_name),
-        dpi=400,
-        bbox_inches="tight",
-        pad_inches=0,
-    )
-    plt.close(fig)
