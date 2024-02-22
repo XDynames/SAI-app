@@ -3,13 +3,12 @@ import time
 import types
 
 import torch
-import streamlit as st
 import detectron2
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.visualizer import ColorMode, Visualizer
 
-from inference.post_processing import get_indices_of_valid_predictions
+from inference.predictions import ModelOutput
 from tools.cloud_files import EXTERNAL_DEPENDANCIES
 from tools.load import download_and_save_yaml, download_and_save_model_weights
 from tools.state import Option_State
@@ -27,14 +26,7 @@ class InferenceEngine:
     def run_on_image(self, image):
         with torch.no_grad():
             predictions = self.predictor(image)
-        valid_indices = self._post_process_predictions(predictions)
-        return predictions, valid_indices
-
-    def _post_process_predictions(self, predictions):
-        instances = predictions["instances"].to(torch.device("cpu"))
-        valid_indices = get_indices_of_valid_predictions(instances)
-        predictions["instances"] = instances
-        return valid_indices
+        return predictions["instances"].to(torch.device("cpu"))
 
     def _visualise_predictions(self, instances, image):
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
@@ -52,13 +44,13 @@ class InferenceEngine:
         visualiser.draw_line = types.MethodType(draw_thin_line, visualiser)
 
 
-def run_on_image(image):
+def run_on_image(image, n_stoma: int = 0):
     maybe_setup_inference_engine()
     start_time = time.time()
     demo = Inference_Engines[Option_State["plant_type"]]
-    predictions, valid_indices = demo.run_on_image(image)
+    predictions = demo.run_on_image(image)
     time_elapsed = time.time() - start_time
-    return predictions["instances"], time_elapsed, valid_indices
+    return ModelOutput(predictions, n_stoma), time_elapsed
 
 
 def maybe_setup_inference_engine():

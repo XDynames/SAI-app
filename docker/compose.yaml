@@ -8,7 +8,7 @@ services:
     volumes:
       - ../src/assets:/code/src/assets
       - ../src/output:/code/src/output
-      - ../../stoma_data/:/data
+      - ../../stoma_data/:/code/data
     ports:
       - 80:8501
     deploy:

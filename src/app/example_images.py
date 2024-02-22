@@ -78,9 +78,7 @@ def draw_bounding_boxes(mpl_axis, predictions):
 def maybe_draw_predictions(mpl_axis):
     if Option_State["uploaded_inference"] is not None:
         predictions = Option_State["uploaded_inference"]["predictions"]
-        valid_indices = Option_State["uploaded_inference"][
-            "valid_detection_indices"
-        ]
+        valid_indices = Option_State["uploaded_inference"]["valid_detection_indices"]
         valid_predictions = [predictions[i] for i in valid_indices]
         draw_measurements(mpl_axis, valid_predictions)
         draw_bounding_boxes(mpl_axis, predictions)
@@ -88,15 +86,13 @@ def maybe_draw_predictions(mpl_axis):
 
 def filter_low_confidence_predictions(predictions):
     threshold = Option_State["confidence_threshold"]
-    return filter_predictions_below_threshold(
-        predictions, threshold, "confidence"
-    )
+    return filter_predictions_below_threshold(predictions, threshold, "confidence")
 
 
 def filter_immature_stomata(predictions):
     threshold_in_micron = Option_State["minimum_stoma_length"]
     threshold = threshold_in_micron * get_pixel_to_micron_conversion_factor()
-    return filter_predictions_below_threshold(predictions, threshold, "length")
+    return filter_predictions_below_threshold(predictions, threshold, "pore_length")
 
 
 def get_pixel_to_micron_conversion_factor():
@@ -109,9 +105,7 @@ def get_pixel_to_micron_conversion_factor():
 
 def filter_predictions_below_threshold(predictions, threshold, key):
     predictions = [
-        prediction
-        for prediction in predictions
-        if prediction[key] >= threshold
+        prediction for prediction in predictions if prediction[key] >= threshold
     ]
     return predictions
 

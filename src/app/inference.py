@@ -4,13 +4,9 @@ import json
 import cv2
 import pandas as pd
 import numpy as np
-import shapely.geometry as shapes
 import streamlit as st
-from mask_to_polygons.vectorification import geometries_from_mask
 from matplotlib import pyplot as plt
 from PIL import Image
-from shapely import affinity
-from rasterio.transform import IDENTITY
 
 from app import utils
 from app.example_images import (
@@ -29,11 +25,9 @@ from interface.upload_folder import (
     show_side_by_side_buttons,
 )
 from inference.infer import run_on_image
-from inference.post_processing import (
+from inference.population_filtering import (
     Bounding_Boxes,
     Predicted_Pore_Lengths,
-    calculate_bbox_height,
-    calculate_bbox_width,
     remove_outliers_from_records,
 )
 
@@ -42,9 +36,7 @@ from tools.constants import (
     DENSITY_OUTPUT_COLUMNS,
     MEASUREMENT_KEYS,
     MEASUREMENT_OUTPUT_COLUMN_NAMES,
-    MINIMUM_LENGTH,
     OPENCV_FILE_SUPPORT,
-    WIDTH_OVER_LENGTH_THRESHOLD,
 )
 from tools.load import (
     clean_temporary_folder,
@@ -64,15 +56,11 @@ def maybe_do_single_image_inference():
     if not is_inference_available_for_uploaded_image():
         with st.spinner("Measuring Stomata..."):
             image = get_selected_image()
-            predictions, time_elapsed, valid_indices = run_on_image(image)
-            predictions, valid_indices = predictions_to_list_of_dictionaries(
-                predictions, valid_indices
-            )
+            predictions, time_elapsed = run_on_image(image)
             Option_State["uploaded_inference"] = {
                 "name": Option_State["uploaded_file"]["name"],
                 "model_used": Option_State["plant_type"],
                 "predictions": predictions,
-                "valid_detection_indices": valid_indices,
             }
         st.success(f"Finished in {time_elapsed:2f}s")
 
@@ -169,12 +157,10 @@ def do_inference_on_all_images_in_folder():
     for filename in image_files:
         image = np.array(Image.open(f"{directory}/{filename}"))
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        predictions, time_elapsed, valid_indices = run_on_image(image)
+        predictions, time_elapsed = run_on_image(image, n_stoma)
         record_predictions(
             predictions,
             filename,
-            n_stoma,
-            valid_indices,
             image.shape,
         )
 
@@ -185,7 +171,7 @@ def do_inference_on_all_images_in_folder():
             st.info(f"{filename} completed in {time_elapsed:.2f}s")
 
         total_time += time_elapsed
-        n_stoma += len(predictions)
+        n_stoma += predictions.n_predictions
 
     progress_bar.progress(100)
     progress_bar.empty()
@@ -213,257 +199,30 @@ def is_supported_image_file(filename):
     return filename.split(".")[-1] in OPENCV_FILE_SUPPORT
 
 
-def store_bounding_boxes(predictions):
-    for prediction in predictions:
-        Bounding_Boxes.append(
-            {
-                "height": calculate_bbox_height(prediction["bbox"]),
-                "width": calculate_bbox_width(prediction["bbox"]),
-            }
-        )
-
-
 def record_predictions(
     predictions,
     filename,
-    n_stoma,
-    valid_indices,
     image_size,
 ):
     path = "./output/temp/"
-    predictions, valid_indices = predictions_to_list_of_dictionaries(
-        predictions, valid_indices, n_stoma
-    )
-    store_bounding_boxes(predictions)
+    store_population_filtering_measurements(predictions)
     filename = remove_extension_from_filename(filename)
     to_save = {
-        "detections": predictions,
-        "valid_detection_indices": list(valid_indices),
+        "detections": predictions.detections,
         "image_size": image_size[:-1],
     }
-    with open(path + ".".join([filename, "json"]), "w") as file:
-        json.dump(to_save, file)
+    filepath = path + ".".join([filename, "json"])
+    utils.write_to_json(to_save, filepath)
+
+
+def store_population_filtering_measurements(predictions):
+    Bounding_Boxes.extend(predictions.bounding_box_dimensions)
+    Predicted_Pore_Lengths.extend(predictions.pore_lengths)
 
 
 def remove_extension_from_filename(filename):
     file_extension = "." + filename.split(".")[-1]
     return filename.replace(file_extension, "")
-
-
-def predictions_to_list_of_dictionaries(predictions, valid_indices, n_stoma=0):
-    predictions = [
-        predictions_to_dictionary(i, predictions, n_stoma, valid_indices)
-        for i in range(len(predictions.pred_boxes))
-    ]
-    return predictions, valid_indices
-
-
-def predictions_to_dictionary(i, predictions, n_stoma, valid_indices):
-    # Extract and format predictions
-    pred_mask = predictions.pred_masks[i].cpu().numpy()
-    pred_AB = predictions.pred_keypoints[i].flatten().tolist()
-    pred_class = predictions.pred_classes[i].item()
-    pred_length = l2_dist(pred_AB)
-
-    # Processes prediction mask
-    if pred_class == 1:
-        pred_polygon = mask_to_poly(pred_mask)
-        # Sanity check for keypoint prediction
-        if pred_length < MINIMUM_LENGTH and pred_polygon:
-            pred_AB = get_AB_from_polygon(pred_polygon)
-            pred_length = l2_dist(pred_AB)
-
-        pred_CD = find_CD(pred_polygon, pred_AB)
-        # Retry using polygon keypoints
-        if pred_CD == [-1, -1, 1, -1, -1, 1] and pred_polygon:
-            pred_AB = get_AB_from_polygon(pred_polygon)
-            pred_CD = find_CD(pred_polygon, pred_AB)
-            pred_length = l2_dist(pred_AB)
-
-        width_length_ratio = calulate_width_over_length(pred_length, l2_dist(pred_CD))
-        if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
-            pred_AB = get_AB_from_polygon(pred_polygon)
-            pred_CD = find_CD(pred_polygon, pred_AB)
-            pred_length = l2_dist(pred_AB)
-
-        pred_width = l2_dist(pred_CD)
-        pred_area = pred_mask.sum().item()
-
-    else:
-        pred_polygon = []
-        pred_CD = [-1, -1, 1.0 - 1, -1, 1]
-        pred_width = 0
-        pred_area = 0
-    # Stoma length is always the longest measurement
-    if pred_width > pred_length:
-        pred_AB, pred_CD = pred_CD, pred_AB
-        pred_length, pred_width = pred_width, pred_length
-
-    width_length_ratio = calulate_width_over_length(pred_length, pred_width)
-    if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
-        if i in valid_indices:
-            valid_indices.remove(i)
-
-    prediction_dict = {
-        "stoma_id": i + n_stoma,
-        "bbox": predictions.pred_boxes[i].tensor.tolist()[0],
-        "area": pred_area,
-        "AB_keypoints": pred_AB,
-        "length": pred_length,
-        "CD_keypoints": pred_CD,
-        "width": pred_width,
-        "category_id": pred_class,
-        "segmentation": [pred_polygon],
-        "confidence": predictions.scores[i].item(),
-    }
-    if i in valid_indices:
-        Predicted_Pore_Lengths.append(pred_length)
-    return prediction_dict
-
-
-def get_AB_from_polygon(polygon):
-    x_points = [x for x in polygon[0::2]]
-    y_points = [y for y in polygon[1::2]]
-    return extract_polygon_AB(x_points, y_points)
-
-
-def mask_to_poly(mask):
-    if mask.sum() == 0:
-        return []
-    poly = geometries_from_mask(np.uint8(mask), IDENTITY, "polygons")
-    if len(poly) > 1:
-        poly = find_maximum_area_polygon(poly)
-    else:
-        poly = poly[0]
-    poly = poly["coordinates"][0]
-    return flatten_polygon(poly)
-
-
-def find_maximum_area_polygon(polygons):
-    maximum = 0
-    index = 0
-    for i, polygon in enumerate(polygons):
-        try:
-            polygon = shapes.Polygon(polygon["coordinates"][0])
-        except Exception:
-            continue
-        if polygon.area > maximum:
-            maximum = polygon.area
-            index = i
-    return polygons[index]
-
-
-def flatten_polygon(polygon):
-    flat_polygon = []
-    for point in polygon:
-        flat_polygon.extend([point[0], point[1]])
-    return flat_polygon
-
-
-def find_CD(polygon, keypoints=None):
-    # If no mask is predicted
-    if len(polygon) < 1:
-        #    counter += 1
-        return [-1, -1, 1, -1, -1, 1]
-
-    x_points = [x for x in polygon[0::2]]
-    y_points = [y for y in polygon[1::2]]
-
-    if keypoints is None:
-        keypoints = extract_polygon_AB(x_points, y_points)
-    # Convert to shapely linear ring
-    polygon = [[x, y] for x, y in zip(x_points, y_points)]
-    mask = shapes.LinearRing(polygon)
-    # Find line perpendicular to AB
-    A = shapes.Point(keypoints[0], keypoints[1])
-    B = shapes.Point(keypoints[3], keypoints[4])
-
-    l_AB = shapes.LineString([A, B])
-    l_perp = affinity.rotate(l_AB, 90)
-    l_perp = affinity.scale(l_perp, 10, 10)
-    # Find intersection with polygon
-    try:
-        intersections = l_perp.intersection(mask)
-    except Exception:
-        intersections = shapes.collection.GeometryCollection()
-    # If there is no intersection or only one point of intersection
-    if intersections.is_empty or type(intersections) is shapes.Point:
-        return [-1, -1, 1, -1, -1, 1]
-    # If there are multiple intersections, pick the largest
-    if len(intersections.geoms) > 2:
-        intersections = select_longest_line(intersections)
-
-    if intersections.geoms[0].coords.xy[1] > intersections.geoms[1].coords.xy[1]:
-        D = intersections.geoms[0].coords.xy
-        C = intersections.geoms[1].coords.xy
-    else:
-        D = intersections.geoms[1].coords.xy
-        C = intersections.geoms[0].coords.xy
-    return [C[0][0], C[1][0], 1, D[0][0], D[1][0], 1]
-
-
-def select_longest_line(multipoint):
-    lines, lengths = [], []
-    for i, point_1 in enumerate(multipoint.geoms):
-        for point_2 in multipoint.geoms[i + 1 :].geoms:
-            lines.append(shapes.LineString([point_1, point_2]))
-            lengths.append(lines[-1].length)
-    longest_line_idx = max(range(len(lengths)), key=lambda i: lengths[i])
-    longest_line = lines[longest_line_idx]
-    return shapes.MultiPoint(list(longest_line.coords))
-
-
-def extract_polygon_AB(x_values, y_values):
-    x_min, x_max = min(x_values), max(x_values)
-    y_min, y_max = min(y_values), max(y_values)
-    x_extent = x_max - x_min
-    y_extent = y_max - y_min
-    # Enables pores of arbitrary orientation
-    if x_extent > y_extent:
-        major_axis_values = x_values
-        minor_axis_values = y_values
-        maximum_major_value = x_max
-        minimum_major_value = x_min
-    else:
-        major_axis_values = y_values
-        minor_axis_values = x_values
-        maximum_major_value = y_max
-        minimum_major_value = y_min
-    # Left/Right along major axis
-    left_hand_values, right_hand_values = [], []
-    for i, minor_value in enumerate(minor_axis_values):
-        if maximum_major_value == major_axis_values[i]:
-            right_hand_values.append(minor_value)
-        if minimum_major_value == major_axis_values[i]:
-            left_hand_values.append(minor_value)
-    # Use midpoint of extreme values as keypoint value
-    right_hand_value = (right_hand_values[0] + right_hand_values[-1]) / 2
-    left_hand_value = (left_hand_values[0] + left_hand_values[-1]) / 2
-
-    if x_extent > y_extent:
-        keypoints = [
-            minimum_major_value,
-            left_hand_value,
-            1,
-            maximum_major_value,
-            right_hand_value,
-            1,
-        ]
-    else:
-        keypoints = [
-            left_hand_value,
-            minimum_major_value,
-            1,
-            right_hand_value,
-            maximum_major_value,
-            1,
-        ]
-    return keypoints
-
-
-def l2_dist(keypoints):
-    A, B = [keypoints[0], keypoints[1]], [keypoints[3], keypoints[4]]
-    return pow((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2, 0.5)
 
 
 def reset_predictions():
@@ -499,17 +258,22 @@ def maybe_convert_length_measurement_units():
 
 def convert_measurements(predictions):
     for prediction in predictions:
-        prediction["width"] = convert_to_SIU_length(prediction["width"])
-        prediction["length"] = convert_to_SIU_length(prediction["length"])
-        prediction["area"] = convert_to_SIU_length(prediction["area"])
-        prediction["area"] = convert_to_SIU_length(prediction["area"])
+        prediction["pore_width"] = convert_to_SIU_length(prediction["pore_width"])
+        prediction["pore_length"] = convert_to_SIU_length(prediction["pore_length"])
+        prediction["pore_area"] = convert_to_SIU_length(prediction["pore_area"])
+        prediction["guard_cell_area"] = convert_to_SIU_length(
+            prediction["guard_cell_area"]
+        )
+        prediction["subsidiary_cell_area"] = convert_to_SIU_length(
+            prediction["subsidiary_cell_area"]
+        )
     return predictions
 
 
 def create_output_csvs():
     predictions = Option_State["folder_inference"]["predictions"]
-    valid_predictions = format_predictions(predictions)
-    measurement_csv_filename = write_measurements_to_csv(valid_predictions)
+    formatted_predictions = format_predictions(predictions)
+    measurement_csv_filename = write_measurements_to_csv(formatted_predictions)
     densities = format_densities(predictions)
     density_csv_filename = write_density_csv(densities)
     return density_csv_filename, measurement_csv_filename
@@ -534,30 +298,21 @@ def format_predictions(predictions):
     for prediction in predictions:
         image_name = prediction["image_name"]
         detections = prediction["detections"]
-        valid_indices = prediction["valid_detection_indices"]
-        for i, detection in enumerate(detections):
-            if i not in valid_indices:
-                continue
+        for detection in detections:
             measurements = {
                 "stoma_id": detection["stoma_id"],
-                "width": detection["width"],
-                "length": detection["length"],
-                "area": detection["area"],
+                "pore_width": detection["pore_width"],
+                "pore_length": detection["pore_length"],
+                "pore_area": detection["pore_area"],
+                "subsidiary_cell_area": detection["subsidiary_cell_area"],
+                "guard_cell_area": detection["guard_cell_area"],
                 "class": "open" if detection["category_id"] else "closed",
                 "confidence": detection["confidence"],
                 "image_name": image_name,
-                "width/length": calculate_width_to_length_ratio(detection),
+                "pore_width_to_length_ratio": detection["width_over_length"],
             }
             stoma_measurements.append(measurements)
     return stoma_measurements
-
-
-def calculate_width_to_length_ratio(detection):
-    return calulate_width_over_length(detection["length"], detection["width"])
-
-
-def calulate_width_over_length(length, width):
-    return width / length if length > 0 else 0
 
 
 def write_measurements_to_csv(measurements):
@@ -663,17 +418,6 @@ def visualise_and_save():
     progress_bar = st.progress(progress)
     increment = 100 / len(image_names)
 
-    # Was working now stops execution in draw_and_save_visualisation
-    #   at image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # with futures.ProcessPoolExecutor() as executor:
-    #    future_to_image_name = {
-    #        executor.submit(draw_and_save_visualisation, image_name):
-    #        image_name for image_name in image_names
-    #    }
-    #    for result in futures.as_completed(future_to_image_name):
-    #        progress += increment
-    #        progress_bar.progress(int(progress))
-
     for image_name in image_names:
         draw_and_save_visualisation(image_name)
         progress += increment
@@ -701,10 +445,8 @@ def draw_and_save_visualisation(image_name):
     prediction_path = os.path.join("./output/temp/", predictions_filename)
     record = utils.load_json(prediction_path)
     predictions = record["detections"]
-    valid_indices = record["valid_detection_indices"]
-    valid_predictions = utils.select_predictions(predictions, valid_indices)
     # Draw onto axis
-    draw_measurements(ax, valid_predictions)
+    draw_measurements(ax, predictions)
     draw_bounding_boxes(ax, predictions)
     # Save drawing
     fig.savefig(
