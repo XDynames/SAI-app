@@ -20,8 +20,10 @@ from inference.initial_filter import (
 from inference.utils import (
     calculate_bbox_height,
     calculate_bbox_width,
+    calculate_midpoint_of_keypoints,
     calulate_width_over_length,
     extract_AB_from_polygon,
+    find_AB,
     find_CD,
     is_stomata_complex,
     is_bbox_a_in_bbox_b,
@@ -69,8 +71,9 @@ class ModelOutput:
         self._add_complex_detction(i, prediction)
         self._add_guard_cells(i, prediction)
         self._add_pore(i, prediction)
-        self._add_keypoints(i, prediction)
         self._add_subsidiary_cells(i, prediction)
+        self._add_pore_keypoints(i, prediction)
+        self._add_guard_cell_keypoints(i, prediction)
         self._add_width_over_length(prediction)
         if prediction["width_over_length"] > WIDTH_OVER_LENGTH_THRESHOLD:
             return
@@ -148,7 +151,41 @@ class ModelOutput:
         }
         return pore
 
-    def _add_keypoints(self, i: int, prediction: Dict):
+    def _add_guard_cell_keypoints(self, i: int, prediction: Dict):
+        self._add_guard_cell_width_keypoints(prediction)
+        self._add_guard_cell_groove_keypoints(prediction)
+
+    def _add_guard_cell_groove_keypoints(self, prediction: Dict):
+        guard_cell_polygon = prediction["guard_cell_polygon"]["exterior"]
+        keypoints_AB = prediction["AB_keypoints"]
+        keypoints = find_AB(guard_cell_polygon, keypoints_AB)
+        prediction.update(
+            {
+                "guard_cell_groove_keypoints": [
+                    [*keypoints[:3], *keypoints_AB[:3]],
+                    [*keypoints_AB[3:], *keypoints[3:]],
+                ]
+            }
+        )
+
+    def _add_guard_cell_width_keypoints(self, prediction: Dict):
+        guard_cell_polygon = prediction["guard_cell_polygon"]["exterior"]
+        keypoints_AB = prediction["AB_keypoints"]
+        keypoints = find_CD(guard_cell_polygon, keypoints_AB)
+        keypoints_CD = prediction["CD_keypoints"]
+        if keypoints_CD == [-1, -1, 1, -1, -1, 1]:
+            midpoint = calculate_midpoint_of_keypoints(keypoints_AB)
+            keypoints_CD = [*midpoint, 1, *midpoint, 1]
+        prediction.update(
+            {
+                "guard_cell_width_keypoints": [
+                    [*keypoints[:3], *keypoints_CD[:3]],
+                    [*keypoints_CD[3:], *keypoints[3:]],
+                ]
+            }
+        )
+
+    def _add_pore_keypoints(self, i: int, prediction: Dict):
         keypoints_AB = self._get_keypoints(i)
         pore_length = l2_dist(keypoints_AB)
         if self._is_open_stomata(prediction):

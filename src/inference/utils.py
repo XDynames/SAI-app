@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 
 import streamlit as st
 import shapely.geometry as shapes
@@ -155,7 +155,31 @@ def extract_AB_from_polygon(
     return keypoints
 
 
-def find_CD(polygon, keypoints=None):
+def calculate_midpoint_of_keypoints(points: List[float]) -> List[float]:
+    x = (points[0] + points[3]) / 2
+    y = (points[1] + points[4]) / 2
+    return [x, y]
+
+
+def find_CD(
+    polygon: List[float],
+    keypoints: Union[List[float], None] = None,
+) -> List[float]:
+    return find_keypoints(polygon, keypoints, flip_line=True)
+
+
+def find_AB(
+    polygon: List[float],
+    keypoints: Union[List[float], None] = None,
+) -> List[float]:
+    return find_keypoints(polygon, keypoints, flip_line=False)
+
+
+def find_keypoints(
+    polygon: List[float],
+    keypoints: Union[List[float], None],
+    flip_line: bool,
+) -> List[float]:
     # If no mask is predicted
     if len(polygon) < 1:
         #    counter += 1
@@ -174,7 +198,10 @@ def find_CD(polygon, keypoints=None):
     B = shapes.Point(keypoints[3], keypoints[4])
 
     l_AB = shapes.LineString([A, B])
-    l_perp = affinity.rotate(l_AB, 90)
+    if flip_line:
+        l_perp = affinity.rotate(l_AB, 90)
+    else:
+        l_perp = l_AB
     l_perp = affinity.scale(l_perp, 10, 10)
     # Find intersection with polygon
     try:

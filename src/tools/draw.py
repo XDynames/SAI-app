@@ -106,26 +106,49 @@ def format_polygon_coordinates(polygon):
 
 
 def draw_keypoints(mpl_axis, annotation, gt):
-    draw_length_keypoints(mpl_axis, annotation, gt)
-    draw_width_keypoints(mpl_axis, annotation, gt)
+    draw_guard_cell_width_keypoints(mpl_axis, annotation, gt)
+    draw_guard_cell_groove_keypoints(mpl_axis, annotation, gt)
+    draw_pore_length_keypoints(mpl_axis, annotation, gt)
+    draw_pore_width_keypoints(mpl_axis, annotation, gt)
 
 
-def draw_width_keypoints(mpl_axis, annotation, gt):
+def draw_pore_width_keypoints(mpl_axis, annotation, gt):
+    colour = "xkcd:red" if gt else "xkcd:blue"
     keypoints_width = annotation["CD_keypoints"]
     # Dummy value for closed stoma -> no width
     if keypoints_width[0] == -1:
         return
     keypoints_x = extract_x_keypoints(keypoints_width)
     keypoints_y = extract_y_keypoints(keypoints_width)
-    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt)
+    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
 
 
-def draw_length_keypoints(mpl_axis, annotation, gt):
+def draw_guard_cell_groove_keypoints(mpl_axis, annotation, gt):
+    colour = "xkcd:red" if gt else "xkcd:orange"
+    for keypoints_width in annotation["guard_cell_groove_keypoints"]:
+        # Dummy value for closed stoma -> no width
+        if keypoints_width[0] == -1:
+            return
+        keypoints_x = extract_x_keypoints(keypoints_width)
+        keypoints_y = extract_y_keypoints(keypoints_width)
+        draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
+
+
+def draw_pore_length_keypoints(mpl_axis, annotation, gt):
+    colour = "xkcd:red" if gt else "xkcd:blue"
     key = "keypoints" if gt else "AB_keypoints"
     keypoints_length = annotation[key]
     keypoints_x = extract_x_keypoints(keypoints_length)
     keypoints_y = extract_y_keypoints(keypoints_length)
-    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt)
+    draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
+
+
+def draw_guard_cell_width_keypoints(mpl_axis, annotation, gt):
+    colour = "xkcd:red" if gt else "xkcd:orange"
+    for keypoints_length in annotation["guard_cell_width_keypoints"]:
+        keypoints_x = extract_x_keypoints(keypoints_length)
+        keypoints_y = extract_y_keypoints(keypoints_length)
+        draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
 
 
 def extract_x_keypoints(keypoints):
@@ -136,8 +159,7 @@ def extract_y_keypoints(keypoints):
     return [keypoints[1], keypoints[4]]
 
 
-def draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, gt):
-    colour = "red" if gt else "blue"
+def draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour):
     draw_lines(mpl_axis, [keypoints_x, keypoints_y], colour)
     draw_points(mpl_axis, zip(keypoints_x, keypoints_y), colour)
 
