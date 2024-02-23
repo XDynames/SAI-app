@@ -48,7 +48,7 @@ def maybe_do_single_image_inference():
             Option_State["uploaded_inference"] = {
                 "name": Option_State["uploaded_file"]["name"],
                 "model_used": Option_State["plant_type"],
-                "predictions": predictions,
+                "predictions": predictions.detections,
             }
         st.success(f"Finished in {time_elapsed:2f}s")
 

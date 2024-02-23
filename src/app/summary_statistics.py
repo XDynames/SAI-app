@@ -60,10 +60,6 @@ def display_prediction_summary_statistics(predictions=None):
     else:
         filtered_predictions = apply_user_filters(predictions)
         display_pore_count(filtered_predictions)
-        valid_indices = Option_State["uploaded_inference"][
-            "valid_detection_indices"
-        ]
-        predictions = [predictions[i] for i in valid_indices]
 
     predictions = apply_user_filters(predictions)
     calculate_and_display_summary_statistics(predictions)
@@ -109,17 +105,17 @@ def is_valid_image_area():
 
 
 def display_average_length(annotations):
-    average_length = average_key(annotations, "length")
+    average_length = average_key(annotations, "pore_length")
     print_summary_metric(average_length, "\u03BCm", "px")
 
 
 def display_average_width(annotations):
-    average_width = average_key(annotations, "width")
+    average_width = average_key(annotations, "pore_width")
     print_summary_metric(average_width, "\u03BCm", "px")
 
 
 def display_average_area(annotations):
-    average_area = average_key(annotations, "area")
+    average_area = average_key(annotations, "pore_area")
     print_summary_metric(average_area, "\u03BCm\u00B2", "px\u00B2")
 
 

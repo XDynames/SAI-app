@@ -78,9 +78,7 @@ def draw_bounding_boxes(mpl_axis, predictions):
 def maybe_draw_predictions(mpl_axis):
     if Option_State["uploaded_inference"] is not None:
         predictions = Option_State["uploaded_inference"]["predictions"]
-        valid_indices = Option_State["uploaded_inference"]["valid_detection_indices"]
-        valid_predictions = [predictions[i] for i in valid_indices]
-        draw_measurements(mpl_axis, valid_predictions)
+        draw_measurements(mpl_axis, predictions)
         draw_bounding_boxes(mpl_axis, predictions)
 
 
