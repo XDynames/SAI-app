@@ -1,4 +1,8 @@
-from typing import List
+import copy
+from typing import List, Union
+
+import streamlit as st
+from detectron2.structures import Instances
 
 from inference.utils import (
     is_bbox_a_in_bbox_b,
@@ -16,14 +20,14 @@ from inference.constants import (
 )
 
 
-def filter_invalid_predictions(predictions):
+def filter_invalid_predictions(predictions: Instances) -> Instances:
     remove_intersecting_predictions(predictions)
-    remove_close_to_edge_detections(predictions)
-    remove_extremely_small_detections(predictions)
-    remove_orphan_detections(predictions)
+    removed = remove_close_to_edge_detections(predictions)
+    removed = remove_extremely_small_detections(predictions, removed)
+    return remove_orphan_detections(predictions, removed)
 
 
-def remove_intersecting_predictions(predictions):
+def remove_intersecting_predictions(predictions: Instances):
     final_indices = []
     for i in range(len(predictions.pred_boxes)):
         if is_stomata_complex(i, predictions):
@@ -34,13 +38,13 @@ def remove_intersecting_predictions(predictions):
     select_predictions(predictions, final_indices)
 
 
-def is_best_prediction(i: int, predictions) -> bool:
+def is_best_prediction(i: int, predictions: Instances) -> bool:
     intersecting = get_intersecting_prediction_indices(i, predictions)
     is_larger = is_score_larger_intersecting_predictions(i, predictions, intersecting)
     return all(is_larger) or not intersecting
 
 
-def get_intersecting_prediction_indices(i: int, predictions) -> List[int]:
+def get_intersecting_prediction_indices(i: int, predictions: Instances) -> List[int]:
     bbox = get_bounding_box(i, predictions)
     intersecting = [
         j
@@ -52,7 +56,7 @@ def get_intersecting_prediction_indices(i: int, predictions) -> List[int]:
 
 def is_score_larger_intersecting_predictions(
     i: int,
-    predictions,
+    predictions: Instances,
     intersecting: List[int],
 ) -> List[bool]:
     is_larger = [
@@ -62,28 +66,40 @@ def is_score_larger_intersecting_predictions(
     return is_larger
 
 
-def select_predictions(predictions, indices: List[int]):
+def select_predictions(
+    predictions: Instances,
+    indices: List[int],
+    inplace=True,
+) -> Union[Instances, None]:
+    if not inplace:
+        predictions = copy.deepcopy(predictions)
     predictions.pred_boxes.tensor = predictions.pred_boxes.tensor[indices]
+    predictions.scores = predictions.scores[indices]
     predictions.pred_classes = predictions.pred_classes[indices]
     predictions.pred_masks = predictions.pred_masks[indices]
     predictions.pred_keypoints = predictions.pred_keypoints[indices]
+    predictions.pred_keypoint_heatmaps = predictions.pred_keypoint_heatmaps[indices]
+    if not inplace:
+        return predictions
 
 
-def remove_close_to_edge_detections(predictions):
-    final_indices = []
+def remove_close_to_edge_detections(predictions: Instances) -> Instances:
+    valid_indices, invalid_indices = [], []
     average_area = calculate_average_bbox_area(predictions)
     for i in range(len(predictions.pred_boxes)):
         if is_stomata_complex(i, predictions):
             if is_detection_too_close_to_edge(i, predictions, average_area):
-                continue
+                invalid_indices.append(i)
             else:
-                final_indices.append(i)
+                valid_indices.append(i)
         else:
-            final_indices.append(i)
-    select_predictions(predictions, final_indices)
+            valid_indices.append(i)
+    invalid = select_predictions(predictions, invalid_indices, inplace=False)
+    select_predictions(predictions, valid_indices)
+    return invalid
 
 
-def calculate_average_bbox_area(predictions) -> float:
+def calculate_average_bbox_area(predictions: Instances) -> float:
     areas = [
         calculate_bbox_area(bbox)
         for i, bbox in enumerate(predictions.pred_boxes)
@@ -95,7 +111,11 @@ def calculate_average_bbox_area(predictions) -> float:
     return sum(areas) / n_bbox
 
 
-def is_detection_too_close_to_edge(i, predictions, average_area: float) -> bool:
+def is_detection_too_close_to_edge(
+    i: int,
+    predictions: Instances,
+    average_area: float,
+) -> bool:
     image_height, image_width = predictions.image_size
     bbox = get_bounding_box(i, predictions)
     is_near_edge = is_bbox_near_edge(bbox, image_height, image_width)
@@ -128,39 +148,49 @@ def calculate_bbox_area(bbox: List[float]) -> float:
     return width * height
 
 
-def remove_extremely_small_detections(predictions):
-    final_indices = []
+def remove_extremely_small_detections(
+    predictions: Instances,
+    removed_predictions: Instances,
+) -> Instances:
+    valid_indices, invalid_indices = [], []
     average_area = calculate_average_bbox_area(predictions)
     for i, bbox_i in enumerate(predictions.pred_boxes):
         if is_stomata_complex(i, predictions):
             if is_bbox_extremely_small(bbox_i, average_area):
-                continue
+                invalid_indices.append(i)
             else:
-                final_indices.append(i)
+                valid_indices.append(i)
         else:
-            final_indices.append(i)
-    select_predictions(predictions, final_indices)
+            valid_indices.append(i)
+    invalid = select_predictions(predictions, invalid_indices, inplace=False)
+    select_predictions(predictions, valid_indices)
+    return Instances.cat([removed_predictions, invalid])
 
 
-def is_bbox_extremely_small(bbox, average_area):
+def is_bbox_extremely_small(bbox: List[float], average_area: float) -> bool:
     return calculate_bbox_area(bbox) < average_area * SIZE_THRESHOLD
 
 
-def remove_orphan_detections(predictions):
-    final_indices = []
+def remove_orphan_detections(
+    predictions: Instances,
+    removed_predictions: Instances,
+) -> Instances:
+    valid_indices, invalid_indices = [], []
     for i in range(len(predictions.pred_boxes)):
         if not is_stomata_complex(i, predictions):
             bbox = get_bounding_box(i, predictions)
             if is_orphan(i, bbox, predictions):
-                continue
+                invalid_indices.append(i)
             else:
-                final_indices.append(i)
+                valid_indices.append(i)
         else:
-            final_indices.append(i)
-    select_predictions(predictions, final_indices)
+            valid_indices.append(i)
+    invalid = select_predictions(predictions, invalid_indices, inplace=False)
+    select_predictions(predictions, valid_indices)
+    return Instances.cat([removed_predictions, invalid])
 
 
-def is_orphan(i, bbox, predictions) -> bool:
+def is_orphan(i: int, bbox: List[float], predictions: Instances) -> bool:
     for j in range(len(predictions.pred_boxes)):
         if is_stomata_complex(j, predictions):
             stomata_bbox = get_bounding_box(j, predictions)
@@ -173,5 +203,5 @@ def is_orphan(i, bbox, predictions) -> bool:
     return True
 
 
-def _is_bbox_a_mostly_in_bbox_b(bbox_a, bbox_b):
+def _is_bbox_a_mostly_in_bbox_b(bbox_a: List[float], bbox_b: List[float]) -> bool:
     return is_bbox_a_mostly_in_bbox_b(bbox_a, bbox_b, ORPHAN_AREA_THRESHOLD)

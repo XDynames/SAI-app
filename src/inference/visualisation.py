@@ -11,6 +11,7 @@ from app.example_images import (
 )
 from app import utils
 from inference.utils import get_list_of_images_in_folder
+from tools import draw
 from tools.load import maybe_create_visualisation_folder
 from tools.state import Option_State
 
@@ -61,10 +62,10 @@ def draw_and_save_visualisation(image_name):
     predictions_filename = image_name.split(".")[0] + ".json"
     prediction_path = os.path.join("./output/temp/", predictions_filename)
     record = utils.load_json(prediction_path)
-    predictions = record["detections"]
     # Draw onto axis
-    draw_measurements(ax, predictions)
-    draw_bounding_boxes(ax, predictions)
+    draw_measurements(ax, record["detections"])
+    draw_bounding_boxes(ax, record["detections"])
+    draw.bboxes(ax, record["invalid_detections"], False)
     # Save drawing
     fig.savefig(
         os.path.join(output_path, image_name),

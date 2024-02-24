@@ -181,6 +181,7 @@ def record_predictions(
     filename = remove_extension_from_filename(filename)
     to_save = {
         "detections": predictions.detections,
+        "invalid_detections": predictions.invalid_detections,
         "image_size": image_size[:-1],
     }
     filepath = path + ".".join([filename, "json"])

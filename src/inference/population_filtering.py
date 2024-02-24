@@ -1,5 +1,6 @@
 import os
 
+import streamlit as st
 import numpy as np
 from scipy.stats import iqr
 
@@ -123,7 +124,9 @@ def calculate_bbox_width_limits():
 
 def remove_outlier_records(record, to_remove):
     predictions = record["detections"]
+    removed = []
     for j in range(len(predictions))[::-1]:
         if j in to_remove:
-            predictions.pop(j)
+            removed.append(predictions.pop(j))
     record["detections"] = predictions
+    record["invalid_detections"].extend(removed)

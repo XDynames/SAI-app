@@ -1,5 +1,7 @@
 import os
 
+import streamlit as st
+
 from interface.upload_single import convert_to_SIU_length
 from tools.constants import (
     DENSITY_KEYS,
@@ -55,8 +57,9 @@ def format_densities(predictions):
     densities = []
     for prediction in predictions:
         detections = prediction["detections"]
+        invalid_detections = prediction["invalid_detections"]
         area = calculate_image_area(prediction["image_size"])
-        n_stomata = len(detections)
+        n_stomata = len(detections) + len(invalid_detections)
         density = {
             "image_name": prediction["image_name"],
             "n_stomata": n_stomata,

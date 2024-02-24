@@ -3,6 +3,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import shapely
+from detectron2.structures import Instances
 from detectron2.utils.visualizer import GenericMask
 from shapely.geometry import Polygon
 
@@ -33,17 +34,19 @@ from tools.draw import format_polygon_coordinates
 
 
 class ModelOutput:
-    def __init__(self, predictions, n_stoma: int):
+    def __init__(self, predictions: Instances, n_stoma: int):
         self._predictions = predictions
         self._formatted_predictions = []
+        self._formatted_invalid_predictions = []
         self.pore_lengths = []
         self.bounding_box_dimensions = []
         self._n_stoma_processed = n_stoma
         self._process_predictions()
 
     def _process_predictions(self):
-        filter_invalid_predictions(self._predictions)
+        self._invalid_predictions = filter_invalid_predictions(self._predictions)
         self._format_predictions()
+        self._format_invalid_predictions()
 
     @property
     def n_predictions(self) -> int:
@@ -54,8 +57,16 @@ class ModelOutput:
         return self._formatted_predictions
 
     @property
+    def invalid_detections(self) -> List[Dict]:
+        return self._formatted_invalid_predictions
+
+    @property
     def _n_predictions(self) -> int:
         return len(self._predictions.pred_boxes)
+
+    @property
+    def _n_invalid_predictions(self) -> int:
+        return len(self._invalid_predictions.pred_boxes)
 
     def _format_predictions(self):
         for i in range(self._n_predictions):
@@ -291,6 +302,35 @@ class ModelOutput:
             "width": calculate_bbox_width(bbox),
         }
         self.bounding_box_dimensions.append(bbox_dimensions)
+
+    def _format_invalid_predictions(self):
+        for i in range(self._n_invalid_predictions):
+            if self._is_invalid_stomata_complex(i):
+                self._format_invalid_prediction(i)
+
+    def _is_invalid_stomata_complex(self, i: int) -> bool:
+        return is_stomata_complex(i, self._invalid_predictions)
+
+    def _format_invalid_prediction(self, i: int):
+        prediction = {}
+        self._add_invalid_complex_detction(i, prediction)
+        prediction["stoma_id"] = self._n_stoma_processed
+        self._n_stoma_processed += 1
+        self._formatted_invalid_predictions.append(prediction)
+
+    def _add_invalid_complex_detction(self, i: int, prediction: Dict):
+        prediction["category_id"] = self._get_invalid_class(i)
+        prediction["bbox"] = self._get_invalid_bounding_box(i)
+        prediction["confidence"] = self._get_invalid_confidence(i)
+
+    def _get_invalid_class(self, i: int) -> int:
+        return self._invalid_predictions.pred_classes[i].item()
+
+    def _get_invalid_bounding_box(self, i: int) -> List[float]:
+        return self._invalid_predictions.pred_boxes[i].tensor.tolist()[0]
+
+    def _get_invalid_confidence(self, i: int) -> float:
+        return self._invalid_predictions.scores[i].item()
 
     def _get_class(self, i: int) -> int:
         return self._predictions.pred_classes[i].item()
