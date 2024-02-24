@@ -1,7 +1,6 @@
 import os
 from typing import List, Union
 
-import streamlit as st
 import shapely.geometry as shapes
 from shapely import affinity
 

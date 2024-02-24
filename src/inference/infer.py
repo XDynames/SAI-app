@@ -1,12 +1,11 @@
 import os
 import time
-import types
 
 import torch
 import detectron2
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
-from detectron2.utils.visualizer import ColorMode, Visualizer
+from detectron2.utils.visualizer import ColorMode
 
 from inference.predictions import ModelOutput
 from tools.cloud_files import EXTERNAL_DEPENDANCIES
@@ -27,21 +26,6 @@ class InferenceEngine:
         with torch.no_grad():
             predictions = self.predictor(image)
         return predictions["instances"].to(torch.device("cpu"))
-
-    def _visualise_predictions(self, instances, image):
-        # Convert image from OpenCV BGR format to Matplotlib RGB format.
-        image = image[:, :, ::-1]
-        visualiser = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
-        self._patch_visualiser_so_it_draws_thin_lines(visualiser)
-        return visualiser.draw_instance_predictions(predictions=instances)
-
-    def _patch_visualiser_so_it_draws_thin_lines(self, visualiser):
-        # Monkey Patch to draw thinner lines
-        def draw_thin_line(self, x_data, y_data, color, linestyle="-", linewidth=2):
-            self._draw_line(x_data, y_data, color, "-", linewidth)
-
-        visualiser._draw_line = visualiser.draw_line
-        visualiser.draw_line = types.MethodType(draw_thin_line, visualiser)
 
 
 def run_on_image(image, n_stoma: int = 0):

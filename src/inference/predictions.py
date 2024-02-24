@@ -3,7 +3,6 @@ from typing import Dict, List, Union
 
 import numpy as np
 import shapely
-import streamlit as st
 from detectron2.utils.visualizer import GenericMask
 from shapely.geometry import Polygon
 
