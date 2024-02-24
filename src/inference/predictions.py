@@ -244,6 +244,9 @@ class ModelOutput:
             polygon = self._select_largest_polygon(subsidiary_cell.polygons)
             subsidiary_area += subsidiary_cell.area()
             subsidiary_polygons.append(polygon)
+        # If only one cell was detected estimate total area as double
+        if len(subsidiary_polygons) == 1:
+            subsidiary_area *= 2
         prediction.update(
             {
                 "subsidiary_cell_polygons": subsidiary_polygons,
