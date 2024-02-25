@@ -108,15 +108,14 @@ class ModelOutput:
             polygon = Polygon(format_polygon_coordinates(guard_cell_polygon))
             if shapely.within(polygon, shapely_exterior):
                 interior = guard_cell_polygon.tolist()
-        prediction.update(
-            {
-                "guard_cell_area": guard_cell_mask.area(),
-                "guard_cell_polygon": {
-                    "exterior": exterior_polygon,
-                    "interior": interior,
-                },
-            }
-        )
+        guard_cell = {
+            "guard_cell_area": guard_cell_mask.area(),
+            "guard_cell_polygon": {
+                "exterior": exterior_polygon,
+                "interior": interior,
+            },
+        }
+        prediction.update(guard_cell)
 
     def _select_largest_polygon(self, polygons: List[GenericMask]) -> GenericMask:
         tmp_polygons = [format_polygon_coordinates(polygon) for polygon in polygons]
@@ -169,14 +168,14 @@ class ModelOutput:
         guard_cell_polygon = prediction["guard_cell_polygon"]["exterior"]
         keypoints_AB = prediction["AB_keypoints"]
         keypoints = find_AB(guard_cell_polygon, keypoints_AB)
-        prediction.update(
-            {
-                "guard_cell_groove_keypoints": [
-                    [*keypoints[:3], *keypoints_AB[:3]],
-                    [*keypoints_AB[3:], *keypoints[3:]],
-                ]
-            }
-        )
+        keypoint_1 = [*keypoints[:3], *keypoints_AB[:3]]
+        keypoint_2 = [*keypoints_AB[3:], *keypoints[3:]]
+        length = (l2_dist(keypoint_1) + l2_dist(keypoint_2)) / 2
+        guard_cell_grooves = {
+            "guard_cell_groove_keypoints": [keypoint_1, keypoint_2],
+            "guard_cell_groove_length": length,
+        }
+        prediction.update(guard_cell_grooves)
 
     def _add_guard_cell_width_keypoints(self, prediction: Dict):
         guard_cell_polygon = prediction["guard_cell_polygon"]["exterior"]
@@ -186,14 +185,14 @@ class ModelOutput:
         if keypoints_CD == [-1, -1, 1, -1, -1, 1]:
             midpoint = calculate_midpoint_of_keypoints(keypoints_AB)
             keypoints_CD = [*midpoint, 1, *midpoint, 1]
-        prediction.update(
-            {
-                "guard_cell_width_keypoints": [
-                    [*keypoints[:3], *keypoints_CD[:3]],
-                    [*keypoints_CD[3:], *keypoints[3:]],
-                ]
-            }
-        )
+        keypoint_1 = [*keypoints[:3], *keypoints_CD[:3]]
+        keypoint_2 = [*keypoints_CD[3:], *keypoints[3:]]
+        width = (l2_dist(keypoint_1) + l2_dist(keypoint_2)) / 2
+        guard_cell_width = {
+            "guard_cell_width_keypoints": [keypoint_1, keypoint_2],
+            "guard_cell_width": width,
+        }
+        prediction.update(guard_cell_width)
 
     def _add_pore_keypoints(self, i: int, prediction: Dict):
         keypoints_AB = self._get_keypoints(i)
@@ -204,14 +203,12 @@ class ModelOutput:
             if self._is_pore_length_extremly_small(i):
                 keypoints_AB = self._extract_AB_from_polygon(pore_polygon)
                 pore_length = l2_dist(keypoints_AB)
-
             keypoints_CD = find_CD(pore_polygon, keypoints_AB)
             # Retry using polygon keypoints
             if keypoints_CD == [-1, -1, 1, -1, -1, 1]:
                 keypoints_AB = self._extract_AB_from_polygon(pore_polygon)
                 keypoints_CD = find_CD(pore_polygon, keypoints_AB)
                 pore_length = l2_dist(keypoints_AB)
-
             pore_width = l2_dist(keypoints_CD)
             width_length_ratio = calulate_width_over_length(pore_length, pore_width)
             if width_length_ratio > WIDTH_OVER_LENGTH_THRESHOLD:
@@ -223,20 +220,17 @@ class ModelOutput:
         else:
             keypoints_CD = [-1, -1, 1, -1, -1, 1]
             pore_width = 0
-
         # Stoma length is always the longest measurement
         if pore_width > pore_length:
             keypoints_AB, keypoints_CD = keypoints_CD, keypoints_AB
             pore_length, pore_width = pore_width, pore_length
-
-        prediction.update(
-            {
-                "AB_keypoints": keypoints_AB,
-                "CD_keypoints": keypoints_CD,
-                "pore_length": pore_length,
-                "pore_width": pore_width,
-            }
-        )
+        pore_keypoints = {
+            "AB_keypoints": keypoints_AB,
+            "CD_keypoints": keypoints_CD,
+            "pore_length": pore_length,
+            "pore_width": pore_width,
+        }
+        prediction.update(pore_keypoints)
 
     def _is_pore_length_extremly_small(self, i) -> bool:
         keypoints_AB = self._get_keypoints(i)
@@ -258,12 +252,11 @@ class ModelOutput:
         # If only one cell was detected estimate total area as double
         if len(subsidiary_polygons) == 1:
             subsidiary_area *= 2
-        prediction.update(
-            {
-                "subsidiary_cell_polygons": subsidiary_polygons,
-                "subsidiary_cell_area": subsidiary_area,
-            }
-        )
+        subsidiary_cell = {
+            "subsidiary_cell_polygons": subsidiary_polygons,
+            "subsidiary_cell_area": subsidiary_area,
+        }
+        prediction.update(subsidiary_cell)
 
     def _get_subsidiary_cells(self, i: int) -> List[GenericMask]:
         subsidiary_cells = []

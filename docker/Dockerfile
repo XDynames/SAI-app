@@ -10,7 +10,6 @@ RUN python -m pip install detectron2 -f \
 WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install -r requirements.txt
-RUN pip install mask-to-polygons==0.0.2 --no-deps
 COPY ./setup.py /code/setup.py
 COPY ./src /code/src
 RUN pip install -e .

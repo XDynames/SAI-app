@@ -14,7 +14,7 @@ from app.example_images import (
 )
 from app.image_retrieval import get_selected_image
 from app.summary_statistics import is_valid_calibration
-from interface.upload_single import convert_to_SIU_length
+from interface.upload_single import convert_to_SIU_length, convert_to_SIU_area
 from interface.upload_folder import (
     get_download_csv_button,
     show_save_visualisations_options,
@@ -233,11 +233,17 @@ def convert_measurements(predictions):
     for prediction in predictions:
         prediction["pore_width"] = convert_to_SIU_length(prediction["pore_width"])
         prediction["pore_length"] = convert_to_SIU_length(prediction["pore_length"])
-        prediction["pore_area"] = convert_to_SIU_length(prediction["pore_area"])
-        prediction["guard_cell_area"] = convert_to_SIU_length(
+        prediction["pore_area"] = convert_to_SIU_area(prediction["pore_area"])
+        prediction["guard_cell_area"] = convert_to_SIU_area(
             prediction["guard_cell_area"]
         )
-        prediction["subsidiary_cell_area"] = convert_to_SIU_length(
+        prediction["guard_cell_groove_length"] = convert_to_SIU_length(
+            prediction["guard_cell_groove_length"]
+        )
+        prediction["guard_cell_width"] = convert_to_SIU_length(
+            prediction["guard_cell_width"]
+        )
+        prediction["subsidiary_cell_area"] = convert_to_SIU_area(
             prediction["subsidiary_cell_area"]
         )
     return predictions
