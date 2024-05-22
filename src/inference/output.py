@@ -124,8 +124,10 @@ def calculate_g_max(density: float, prediction: Dict) -> float:
     constant = DIFFUSIVITY_OF_WATER_IN_AIR_25C / MOLAR_VOLUME_OF_WATER_IN_AIR_25C
     numerator = a_max * density
     denominator = pore_depth + math.sqrt(a_max * math.pi / 4)
-    g_max_mmol = constant * numerator / denominator
-    return g_max_mmol / 1000
+    if denominator > 0:
+        g_max_mmol = constant * numerator / denominator
+        return g_max_mmol / 1000
+    return 0.0
 
 
 def caclulate_pore_depth(prediction: Dict) -> float:
@@ -161,4 +163,6 @@ def calculate_dicot_a_max(prediction: Dict) -> float:
 
 def calculate_average_length_of_key(prediction: Dict, key: str) -> float:
     lengths = [detection[key] for detection in prediction["detections"]]
-    return sum(lengths) / len(lengths)
+    if len(lengths) > 0:
+        return sum(lengths) / len(lengths)
+    return 0.0

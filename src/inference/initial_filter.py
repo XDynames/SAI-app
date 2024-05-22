@@ -1,7 +1,6 @@
 import copy
 from typing import List, Union
 
-import streamlit as st
 from detectron2.structures import Instances
 
 from inference.utils import (
@@ -24,7 +23,8 @@ def filter_invalid_predictions(predictions: Instances) -> Instances:
     remove_intersecting_predictions(predictions)
     removed = remove_close_to_edge_detections(predictions)
     removed = remove_extremely_small_detections(predictions, removed)
-    return remove_orphan_detections(predictions, removed)
+    removed = remove_orphan_detections(predictions, removed)
+    return removed
 
 
 def remove_intersecting_predictions(predictions: Instances):
