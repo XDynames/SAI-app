@@ -46,13 +46,19 @@ def maybe_setup_inference_engine():
 def setup_inference_engine(selected_species):
     maybe_download_config_files(selected_species)
     maybe_download_model_weights(selected_species)
-    configuration = setup_model_configuration(selected_species)
+    configuration = setup_model_configuration(selected_species.lower())
     Inference_Engines[selected_species] = InferenceEngine(configuration)
 
 
 def maybe_download_config_files(selected_species):
+    selected_species = selected_species.lower()
     if not os.path.exists(f"./assets/config/{selected_species}.yaml"):
         filename = get_configuration_filepath(selected_species)
+        url = EXTERNAL_DEPENDANCIES[f"base_{selected_species}_config"]
+        download_and_save_yaml(url, filename)
+
+    if not os.path.exists(f"./assets/config/{selected_species}_v2.yaml"):
+        filename = get_configuration_filepath(f"{selected_species}_v2")
         url = EXTERNAL_DEPENDANCIES[f"{selected_species}_config"]
         download_and_save_yaml(url, filename)
 
@@ -63,25 +69,26 @@ def maybe_download_config_files(selected_species):
 
 
 def maybe_download_model_weights(selected_species):
-    filepath = f"./assets/{selected_species.lower()}/weights.pth"
+    selected_species = selected_species.lower()
+    filepath = f"./assets/{selected_species}/weights.pth"
     url = EXTERNAL_DEPENDANCIES[f"{selected_species}_weights"]
     if not os.path.exists(filepath):
         download_and_save_model_weights(url, filepath)
 
 
-def get_configuration_filepath(selected_species):
-    return f"./assets/config/{selected_species}.yaml"
+def get_configuration_filepath(filename: str) -> str:
+    return f"./assets/config/{filename}.yaml"
 
 
 def get_model_weights_filepath(selected_species):
-    return f"./assets/{selected_species.lower()}/weights.pth"
+    return f"./assets/{selected_species}/weights.pth"
 
 
 def setup_model_configuration(selected_species):
     cfg = detectron2.config.get_cfg()
     # a dirty fix for the keypoint resolution config
     cfg.MODEL.ROI_KEYPOINT_HEAD.POOLER_RESOLUTION = (14, 14)
-    cfg.merge_from_file(get_configuration_filepath(selected_species))
+    cfg.merge_from_file(get_configuration_filepath(f"{selected_species}_v2"))
     cfg.MODEL.WEIGHTS = get_model_weights_filepath(selected_species)
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = BASE_CONFIDENCE_THRESHOLD
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = BASE_CONFIDENCE_THRESHOLD
