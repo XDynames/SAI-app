@@ -82,7 +82,7 @@ IMAGE_DICTS = {
         "1 - At": {
             "image": f"{HOST_URL_ROOT}/44323415",
             "predictions": f"{HOST_URL_ROOT}/46517008",
-            "ground_truth": "https://cloudstor.aarnet.edu.au/plus/s/TWcFsGslq26P4kl",
+            "ground_truth": f"{HOST_URL_ROOT}/46542007",
         },
         "2 - At": {
             "image": f"{HOST_URL_ROOT}/44323418",
@@ -190,4 +190,9 @@ EXTERNAL_DEPENDANCIES = {
     "arabidopsis_weights": f"{HOST_URL_ROOT}/46516891",
     "base_arabidopsis_config": f"{HOST_URL_ROOT}/44321570",
     "arabidopsis_config": f"{HOST_URL_ROOT}/46517449",
+}
+
+EXAMPLE_MEASUREMENT_OUTPUTS = {
+    "population": f"{HOST_URL_ROOT}/46552876",
+    "sample": f"{HOST_URL_ROOT}/46552879",
 }
