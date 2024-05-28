@@ -56,7 +56,7 @@ def is_mode_upload_an_example():
 
 
 def is_mode_slide_output_example():
-    return Option_State["mode"] == "View Example Slide Output"
+    return Option_State["mode"] == "View Example Outputs"
 
 
 def is_mode_upload_multiple_images():

@@ -2,7 +2,6 @@ import streamlit as st
 
 from interface import ui
 from tools.load import maybe_create_folders
-from tools.state import Option_State
 
 from app.example_images import maybe_draw_example
 from app.example_output import maybe_show_slide_output_example
@@ -10,6 +9,7 @@ from app.inference import maybe_do_inference
 from app.summary_statistics import maybe_display_summary_statistics
 
 Is_Setup = False
+
 
 def main():
     ui.setup()
