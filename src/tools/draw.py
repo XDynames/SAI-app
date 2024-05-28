@@ -6,10 +6,16 @@ from shapely.plotting import plot_polygon
 
 def masks(mpl_axis, annotations, gt):
     for annotation in annotations:
-        if annotation["guard_cell_polygon"]["exterior"]:
-            exterior = annotation["guard_cell_polygon"]["exterior"]
-            interior = annotation["guard_cell_polygon"]["interior"]
-            draw_mask_with_holes(mpl_axis, exterior, interior, "xkcd:orange")
+        if "guard_cell_polygon" in annotation:
+            if "exterior" in annotation["guard_cell_polygon"]:
+                exterior = annotation["guard_cell_polygon"]["exterior"]
+                interior = annotation["guard_cell_polygon"]["interior"]
+                draw_mask_with_holes(mpl_axis, exterior, interior, "xkcd:orange")
+
+        if "guard_cell_polygons" in annotation:
+            polygons = annotation["guard_cell_polygons"]
+            draw_mask(mpl_axis, polygons[0], "xkcd:orange")
+            draw_mask(mpl_axis, polygons[1], "xkcd:orange")
 
         if annotation["pore_polygon"]:
             polygon = annotation["pore_polygon"]
@@ -125,19 +131,15 @@ def draw_pore_width_keypoints(mpl_axis, annotation, gt):
 
 def draw_guard_cell_groove_keypoints(mpl_axis, annotation, gt):
     colour = "xkcd:red" if gt else "xkcd:orange"
-    for keypoints_width in annotation["guard_cell_groove_keypoints"]:
-        # Dummy value for closed stoma -> no width
-        if keypoints_width[0] == -1:
-            return
-        keypoints_x = extract_x_keypoints(keypoints_width)
-        keypoints_y = extract_y_keypoints(keypoints_width)
+    for keypoints_groove in annotation["guard_cell_groove_keypoints"]:
+        keypoints_x = extract_x_keypoints(keypoints_groove)
+        keypoints_y = extract_y_keypoints(keypoints_groove)
         draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
 
 
 def draw_pore_length_keypoints(mpl_axis, annotation, gt):
     colour = "xkcd:red" if gt else "xkcd:blue"
-    key = "keypoints" if gt else "AB_keypoints"
-    keypoints_length = annotation[key]
+    keypoints_length = annotation["AB_keypoints"]
     keypoints_x = extract_x_keypoints(keypoints_length)
     keypoints_y = extract_y_keypoints(keypoints_length)
     draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
@@ -145,9 +147,9 @@ def draw_pore_length_keypoints(mpl_axis, annotation, gt):
 
 def draw_guard_cell_width_keypoints(mpl_axis, annotation, gt):
     colour = "xkcd:red" if gt else "xkcd:orange"
-    for keypoints_length in annotation["guard_cell_width_keypoints"]:
-        keypoints_x = extract_x_keypoints(keypoints_length)
-        keypoints_y = extract_y_keypoints(keypoints_length)
+    for keypoints_width in annotation["guard_cell_width_keypoints"]:
+        keypoints_x = extract_x_keypoints(keypoints_width)
+        keypoints_y = extract_y_keypoints(keypoints_width)
         draw_points_and_lines(mpl_axis, keypoints_x, keypoints_y, colour)
 
 

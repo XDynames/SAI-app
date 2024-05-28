@@ -3,10 +3,11 @@ import streamlit as st
 
 from tools import draw
 from tools.constants import CAMERA_CALIBRATION
+from tools import ground_truth
 from tools.state import Option_State
 from app import utils
 from .image_retrieval import get_selected_image
-from .annotation_retrieval import get_ground_truth, get_predictions
+from .annotation_retrieval import get_predictions
 
 
 def maybe_draw_example():
@@ -118,5 +119,5 @@ def draw_labels_on_image(mpl_axis, annotations, gt):
 
 
 def draw_ground_truth(mpl_axis):
-    ground_truth = get_ground_truth()
-    draw_labels_on_image(mpl_axis, ground_truth, True)
+    annotations = ground_truth.retrieve()
+    draw_labels_on_image(mpl_axis, annotations, True)
