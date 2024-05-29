@@ -1,8 +1,7 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
-import shapely
 import streamlit as st
-from shapely.geometry import MultiPolygon, Polygon, LinearRing
+from shapely.geometry import MultiPolygon, Polygon
 
 from app.annotation_retrieval import get_ground_truth
 from inference.constants import NAMES_TO_CATEGORY_ID, ORPHAN_AREA_THRESHOLD
@@ -155,8 +154,11 @@ def maybe_add_stomata_pore(
         pore = {"pore_area": 0.0, "pore_polygon": []}
     else:
         pore = find_stomata_pore(complex_annotation, structures)
-        polygon = pore["segmentation"][0]
-        pore = {"pore_area": get_polygon_area(polygon), "pore_polygon": polygon}
+        if pore is None:
+            pore = {"pore_area": 0.0, "pore_polygon": []}
+        else:
+            polygon = pore["segmentation"][0]
+            pore = {"pore_area": get_polygon_area(polygon), "pore_polygon": polygon}
     formatted.update(pore)
 
 
@@ -169,15 +171,15 @@ def is_closed_stomata(annotation: Dict) -> bool:
     return class_label == NAMES_TO_CATEGORY_ID["Closed Stomata"]
 
 
-def find_stomata_pore(complex_annotation: Dict, structures: List[Dict]) -> Dict:
-    stomata_pore = {}
+def find_stomata_pore(
+    complex_annotation: Dict, structures: List[Dict]
+) -> Union[Dict, None]:
     stomata_bbox = complex_annotation["bbox"]
     for structure in structures:
         if is_stomata_pore(structure):
             pore_bbox = structure["bbox"]
             if is_bbox_a_in_bbox_b(pore_bbox, stomata_bbox):
                 return structure
-    return stomata_pore
 
 
 def is_stomata_pore(annotation: Dict) -> bool:
