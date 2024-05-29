@@ -1,11 +1,12 @@
 import streamlit as st
 
 from app import utils
-from .annotation_retrieval import get_ground_truth, get_predictions
+from .annotation_retrieval import get_predictions
 from .example_images import (
     filter_immature_stomata,
     filter_low_confidence_predictions,
 )
+from tools import ground_truth
 from tools.constants import IS_ONLINE, IMAGE_AREA
 from tools.state import Option_State
 
@@ -45,10 +46,10 @@ def display_summary_names():
 
 
 def display_ground_truth_summary_statistics():
-    ground_truth = get_ground_truth()
+    annotations = ground_truth.retrieve()
     st.write("Human Annotations")
-    display_pore_count(ground_truth)
-    calculate_and_display_summary_statistics(ground_truth)
+    display_pore_count(annotations)
+    calculate_and_display_summary_statistics(annotations)
 
 
 def display_prediction_summary_statistics(predictions=None):

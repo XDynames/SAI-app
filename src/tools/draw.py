@@ -65,16 +65,14 @@ def legend(mpl_axis, human_flag=True):
 def draw_bbox(mpl_axis, annotation, colour, gt):
     label = f"{annotation['stoma_id']}: " if "stoma_id" in annotation else ""
     label += "Open" if annotation["category_id"] else "Closed"
+    x1, y1, x2, y2 = annotation["bbox"]
+    width = x2 - x1
+    height = y2 - y1
+    text_position = (x1, y1)
     if gt:
-        x1, y1, width, height = annotation["bbox"]
-        text_position = (x1 + width, y1)
         alignment = "right"
         text = f"{label}"
     else:
-        x1, y1, x2, y2 = annotation["bbox"]
-        width = x2 - x1
-        height = y2 - y1
-        text_position = (x1, y1)
         alignment = "left"
         confidence = round(annotation["confidence"] * 100, 0)
         text = f"{label} {confidence}%"

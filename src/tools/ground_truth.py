@@ -24,9 +24,22 @@ def retrieve():
 
 
 def process_ground_truth(raw_ground_truth: List[Dict]) -> List[Dict]:
+    format_bboxes(raw_ground_truth)
     complexes, structures = separate_annotations(raw_ground_truth)
     annotations = format_annotations(complexes, structures)
     return annotations
+
+
+def format_bboxes(raw_ground_truth: List[Dict]):
+    for annotation in raw_ground_truth:
+        if "bbox" in annotation:
+            xyhw_bbox = annotation["bbox"]
+            annotation["bbox"] = convert_bbox_xyhw_to_xyxy(xyhw_bbox)
+
+
+def convert_bbox_xyhw_to_xyxy(xywh_bbox: List[float]) -> List[float]:
+    x1, y1, w, h = xywh_bbox
+    return [x1, y1, x1 + w, y1 + h]
 
 
 def separate_annotations(raw_ground_truth: List[Dict]) -> Tuple:
@@ -63,7 +76,6 @@ def format_annotation(annotation: Dict, structures: List[Dict]) -> Dict:
     maybe_add_stomata_pore(annotation, formatted, structures)
     add_pore_keypoints(annotation, formatted)
     add_guard_cell_keypoints(formatted)
-    # st.write(formatted)
     return formatted
 
 
@@ -93,16 +105,6 @@ def flatten_shapely_coords(coords: List) -> List[float]:
     for coord in coords:
         flat_coords.extend(coord)
     return flat_coords
-
-
-def get_interior_and_exterior_polygons(polygons: List) -> Tuple:
-    tmp_polygons = [format_polygon_coordinates(polygon) for polygon in polygons]
-    areas = [Polygon(polygon).area for polygon in tmp_polygons]
-    if areas[0] > areas[1]:
-        exterior, interior = polygons[0], polygons[1]
-    else:
-        exterior, interior = polygons[1], polygons[0]
-    return exterior, interior
 
 
 def maybe_add_subsidiary_cells(
