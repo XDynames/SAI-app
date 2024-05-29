@@ -48,7 +48,7 @@ def draw_annotations_on_image(ax):
         draw_ground_truth(ax)
     if utils.is_mode_upload_an_example():
         maybe_draw_predictions(ax)
-        draw.legend(ax, False)
+        draw.legend(ax)
     else:
         draw.legend(ax)
 

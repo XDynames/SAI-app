@@ -37,28 +37,38 @@ def bboxes(mpl_axis, annotations, gt):
         draw_bbox(mpl_axis, annotation, edgecolour, gt)
 
 
-def legend(mpl_axis, human_flag=True):
-    mpl_axis.set(ylim=[mpl_axis.get_ylim()[0] + 300, 0])
+def legend(mpl_axis):
+    mpl_axis.set(ylim=[mpl_axis.get_ylim()[0] + 350, 0])
     proxy_handles, labels = [], []
-    if human_flag:
-        proxy_handles.append(mpl.patches.Patch(color="red"))
-        labels.append("Human Measurements")
     proxy_handles.extend(
         [
-            mpl.patches.Patch(color="blue"),
-            mpl.patches.Patch(color="green"),
-            mpl.patches.Patch(color="orange"),
+            mpl.patches.Patch(color="xkcd:green"),
+            mpl.patches.Patch(color="xkcd:purple"),
+            mpl.patches.Patch(color="xkcd:blue"),
+            mpl.patches.Patch(color="xkcd:red"),
+            mpl.patches.Patch(color="xkcd:teal"),
+            mpl.patches.Patch(color="xkcd:orange"),
+            mpl.patches.Patch(color="xkcd:fuchsia"),
         ]
     )
-    labels.extend(["Model Estimates", "Open Pores", "Closed Pores"])
-    num_cols = 2 if human_flag else 3
+    labels.extend(
+        [
+            "Open Pores",
+            "Closed Pores",
+            "Pore Keypoints",
+            "Guard Cell Keypoints",
+            "Pore",
+            "Guard Cells",
+            "Subsidiary Cells",
+        ]
+    )
     mpl_axis.legend(
         proxy_handles,
         labels,
         loc="lower center",
         frameon=False,
-        fontsize=8,
-        ncol=num_cols,
+        fontsize=7,
+        ncol=3,
     )
 
 
@@ -68,11 +78,12 @@ def draw_bbox(mpl_axis, annotation, colour, gt):
     x1, y1, x2, y2 = annotation["bbox"]
     width = x2 - x1
     height = y2 - y1
-    text_position = (x1, y1)
     if gt:
+        text_position = (x1 + width, y1 + height)
         alignment = "right"
         text = f"{label}"
     else:
+        text_position = (x1, y1)
         alignment = "left"
         confidence = round(annotation["confidence"] * 100, 0)
         text = f"{label} {confidence}%"
@@ -117,7 +128,7 @@ def draw_keypoints(mpl_axis, annotation, gt):
 
 
 def draw_pore_width_keypoints(mpl_axis, annotation, gt):
-    colour = "xkcd:red" if gt else "xkcd:blue"
+    colour = "xkcd:blue"
     keypoints_width = annotation["CD_keypoints"]
     # Dummy value for closed stoma -> no width
     if keypoints_width[0] == -1:
@@ -128,7 +139,7 @@ def draw_pore_width_keypoints(mpl_axis, annotation, gt):
 
 
 def draw_guard_cell_groove_keypoints(mpl_axis, annotation, gt):
-    colour = "xkcd:red" if gt else "xkcd:orange"
+    colour = "xkcd:red"
     for keypoints_groove in annotation["guard_cell_groove_keypoints"]:
         keypoints_x = extract_x_keypoints(keypoints_groove)
         keypoints_y = extract_y_keypoints(keypoints_groove)
@@ -136,7 +147,7 @@ def draw_guard_cell_groove_keypoints(mpl_axis, annotation, gt):
 
 
 def draw_pore_length_keypoints(mpl_axis, annotation, gt):
-    colour = "xkcd:red" if gt else "xkcd:blue"
+    colour = "xkcd:blue"
     keypoints_length = annotation["AB_keypoints"]
     keypoints_x = extract_x_keypoints(keypoints_length)
     keypoints_y = extract_y_keypoints(keypoints_length)
@@ -144,7 +155,7 @@ def draw_pore_length_keypoints(mpl_axis, annotation, gt):
 
 
 def draw_guard_cell_width_keypoints(mpl_axis, annotation, gt):
-    colour = "xkcd:red" if gt else "xkcd:orange"
+    colour = "xkcd:red"
     for keypoints_width in annotation["guard_cell_width_keypoints"]:
         keypoints_x = extract_x_keypoints(keypoints_width)
         keypoints_y = extract_y_keypoints(keypoints_width)
