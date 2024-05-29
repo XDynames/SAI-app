@@ -10,7 +10,6 @@ def get_predictions():
         predictions = load_predictions()
     else:
         predictions = download_predictions()
-    predictions = predictions["detections"]
     return predictions
 
 

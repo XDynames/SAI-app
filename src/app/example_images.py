@@ -55,8 +55,12 @@ def draw_annotations_on_image(ax):
 
 def draw_predictions(mpl_axis, predictions=None):
     predictions = get_predictions() if predictions is None else predictions
-    predictions = apply_user_filters_to_predictions(predictions)
-    draw_labels_on_image(mpl_axis, predictions, False)
+    detections = predictions["detections"]
+    detections = apply_user_filters_to_predictions(detections)
+    draw_labels_on_image(mpl_axis, detections, False)
+    invalid_detections = predictions["invalid_detections"]
+    if Option_State["draw_bboxes"]:
+        draw.bboxes(mpl_axis, invalid_detections, False)
 
 
 def apply_user_filters_to_predictions(predictions):

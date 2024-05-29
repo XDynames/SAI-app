@@ -1,4 +1,5 @@
 import streamlit as st
+from typing import Dict, List, Union
 
 from app import utils
 from .annotation_retrieval import get_predictions
@@ -6,6 +7,7 @@ from .example_images import (
     filter_immature_stomata,
     filter_low_confidence_predictions,
 )
+from inference.output import calculate_g_max
 from tools import ground_truth
 from tools.constants import IS_ONLINE, IMAGE_AREA
 from tools.state import Option_State
@@ -43,6 +45,7 @@ def display_summary_names():
     st.write("Average Pore Width:")
     st.write("Average Pore Area:")
     st.write("Stomatal Density:")
+    st.write("Estimated g max:")
 
 
 def display_ground_truth_summary_statistics():
@@ -56,25 +59,31 @@ def display_prediction_summary_statistics(predictions=None):
     st.write("Model Estimates")
     if predictions is None:
         predictions = get_predictions()
-        filtered_predictions = apply_user_filters(predictions)
-        display_pore_count(filtered_predictions)
+        detections = predictions["detections"]
+        invalid_detections = predictions["invalid_detections"]
+        detections = apply_user_filters(detections)
+        display_pore_count(detections, invalid_detections)
+        calculate_and_display_summary_statistics(detections, invalid_detections)
     else:
-        filtered_predictions = apply_user_filters(predictions)
-        display_pore_count(filtered_predictions)
-
-    predictions = apply_user_filters(predictions)
-    calculate_and_display_summary_statistics(predictions)
+        predictions = apply_user_filters(predictions)
+        display_pore_count(predictions)
+        calculate_and_display_summary_statistics(predictions)
 
 
-def calculate_and_display_summary_statistics(annotations):
+def calculate_and_display_summary_statistics(
+    annotations: List[Dict],
+    invalid_detections: List[Dict] = [],
+):
     display_average_length(annotations)
     display_average_width(annotations)
     display_average_area(annotations)
-    display_pore_density(annotations)
+    display_pore_density(annotations, invalid_detections)
+    display_g_max(annotations, invalid_detections)
 
 
-def display_pore_count(annotations):
-    st.write(f"{len(annotations)}")
+def display_pore_count(detections: List[Dict], invalid_detections: List[Dict] = []):
+    n_stomata = len(detections) + len(invalid_detections)
+    st.write(f"{n_stomata}")
 
 
 def apply_user_filters(predictions):
@@ -83,18 +92,38 @@ def apply_user_filters(predictions):
     return predictions
 
 
-def display_pore_density(annotations):
+def display_pore_density(
+    annotations: List[Dict],
+    invalid_detections: List[Dict],
+):
+    density = calculate_sample_density(annotations, invalid_detections)
+    if density > 0.0:
+        density = round(density, 2)
+        st.write(f"{density} stomata/mm\u00B2")
+    else:
+        st.write("N/A")
+
+
+def calculate_sample_density(
+    annotations: List[Dict],
+    invalid_detections: List[Dict],
+) -> float:
+    area = get_image_area()
+    if area > 0.001:
+        n_stomata = len(annotations) + len(invalid_detections)
+        density = n_stomata / area
+    else:
+        density = 0.0
+    return density
+
+
+def get_image_area() -> float:
     area = 0
     if is_valid_image_area():
         area = Option_State["image_area"]
     elif utils.is_mode_view_examples():
         area = IMAGE_AREA[Option_State["plant_type"]]
-
-    if area > 0.001:
-        density = round(len(annotations) / area, 2)
-        st.write(f"{density} stomata/mm\u00B2")
-    else:
-        st.write("N/A")
+    return area
 
 
 def is_valid_image_area():
@@ -103,6 +132,26 @@ def is_valid_image_area():
     if has_input:
         is_valid = Option_State["image_area"] > 0.0001
     return is_valid
+
+
+def display_g_max(
+    annotations: List[Dict],
+    invalid_detections: List[Dict],
+):
+    g_max = calculate_sample_g_max(annotations, invalid_detections)
+    if g_max > 0.0:
+        g_max = round(g_max, 2)
+        st.write(f"{g_max} mol/m\u00B2s")
+    else:
+        st.write("N/A")
+
+
+def calculate_sample_g_max(
+    annotations: List[Dict],
+    invalid_detections: List[Dict],
+) -> float:
+    density = calculate_sample_density(annotations, invalid_detections)
+    return calculate_g_max(density, annotations)
 
 
 def display_average_length(annotations):

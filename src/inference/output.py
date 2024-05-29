@@ -63,7 +63,7 @@ def format_densities(predictions: List[Dict]) -> List[Dict]:
         area = calculate_image_area(prediction["image_size"])
         n_stomata = len(detections) + len(invalid_detections)
         density = n_stomata / area  # pores/mm^2
-        g_max = calculate_g_max(density, prediction)
+        g_max = calculate_g_max(density, prediction["detections"])
         density = {
             "image_name": prediction["image_name"],
             "n_stomata": n_stomata,
@@ -118,9 +118,9 @@ def calculate_image_area(image_size: List[float]) -> float:
     return height * width
 
 
-def calculate_g_max(density: float, prediction: Dict) -> float:
-    pore_depth = caclulate_pore_depth(prediction)
-    a_max = caclulate_a_max(prediction)
+def calculate_g_max(density: float, predictions: List[Dict]) -> float:
+    pore_depth = caclulate_pore_depth(predictions)
+    a_max = caclulate_a_max(predictions)
     constant = DIFFUSIVITY_OF_WATER_IN_AIR_25C / MOLAR_VOLUME_OF_WATER_IN_AIR_25C
     numerator = a_max * density
     denominator = pore_depth + math.sqrt(a_max * math.pi / 4)
@@ -130,39 +130,39 @@ def calculate_g_max(density: float, prediction: Dict) -> float:
     return 0.0
 
 
-def caclulate_pore_depth(prediction: Dict) -> float:
-    width = calculate_average_length_of_key(prediction, "guard_cell_width")
+def caclulate_pore_depth(predictions: List[Dict]) -> float:
+    width = calculate_average_length_of_key(predictions, "guard_cell_width")
     return width / 2
 
 
-def caclulate_a_max(prediction: Dict) -> float:
+def caclulate_a_max(predictions: List[Dict]) -> float:
     a_max = 0.0
     if Option_State["plant_type"] == "Barley":
-        a_max = calculate_monocot_a_max(prediction)
+        a_max = calculate_monocot_a_max(predictions)
     else:
-        a_max = calculate_dicot_a_max(prediction)
+        a_max = calculate_dicot_a_max(predictions)
     return a_max
 
 
-def calculate_monocot_a_max(prediction: Dict) -> float:
+def calculate_monocot_a_max(predictions: List[Dict]) -> float:
     groove_length = calculate_average_length_of_key(
-        prediction,
+        predictions,
         "guard_cell_groove_length",
     )
     groove_length /= 2
-    pore_length = calculate_average_length_of_key(prediction, "pore_length")
+    pore_length = calculate_average_length_of_key(predictions, "pore_length")
     pore_length /= 2
     return math.pi * groove_length * pore_length
 
 
-def calculate_dicot_a_max(prediction: Dict) -> float:
-    pore_length = calculate_average_length_of_key(prediction, "pore_length")
+def calculate_dicot_a_max(predictions: List[Dict]) -> float:
+    pore_length = calculate_average_length_of_key(predictions, "pore_length")
     pore_length /= 2
     return math.pi * pore_length**2
 
 
-def calculate_average_length_of_key(prediction: Dict, key: str) -> float:
-    lengths = [detection[key] for detection in prediction["detections"]]
+def calculate_average_length_of_key(predictions: List[Dict], key: str) -> float:
+    lengths = [detection[key] for detection in predictions]
     if len(lengths) > 0:
         return sum(lengths) / len(lengths)
     return 0.0
