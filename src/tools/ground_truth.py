@@ -7,6 +7,7 @@ from app.annotation_retrieval import get_ground_truth
 from inference.constants import NAMES_TO_CATEGORY_ID, ORPHAN_AREA_THRESHOLD
 from inference.utils import (
     calculate_midpoint_of_keypoints,
+    convert_measurements,
     find_AB,
     find_CD,
     is_bbox_a_in_bbox_b,
@@ -26,6 +27,7 @@ def process_ground_truth(raw_ground_truth: List[Dict]) -> List[Dict]:
     format_bboxes(raw_ground_truth)
     complexes, structures = separate_annotations(raw_ground_truth)
     annotations = format_annotations(complexes, structures)
+    convert_measurements(annotations)
     return annotations
 
 

@@ -1,10 +1,11 @@
 import os
-from typing import List, Union
+from typing import Dict, List, Union
 
 import shapely.geometry as shapes
 from shapely import affinity
 
 from inference.constants import IOU_THRESHOLD, NAMES_TO_CATEGORY_ID
+from interface.upload_single import convert_to_SIU_length, convert_to_SIU_area
 from tools.constants import OPENCV_FILE_SUPPORT
 
 
@@ -250,3 +251,23 @@ def calculate_bbox_height(bbox):
 
 def calculate_bbox_width(bbox):
     return abs(bbox[2] - bbox[0])
+
+
+def convert_measurements(predictions: List[Dict]) -> List[Dict]:
+    for prediction in predictions:
+        prediction["pore_width"] = convert_to_SIU_length(prediction["pore_width"])
+        prediction["pore_length"] = convert_to_SIU_length(prediction["pore_length"])
+        prediction["pore_area"] = convert_to_SIU_area(prediction["pore_area"])
+        prediction["guard_cell_area"] = convert_to_SIU_area(
+            prediction["guard_cell_area"]
+        )
+        prediction["guard_cell_groove_length"] = convert_to_SIU_length(
+            prediction["guard_cell_groove_length"]
+        )
+        prediction["guard_cell_width"] = convert_to_SIU_length(
+            prediction["guard_cell_width"]
+        )
+        prediction["subsidiary_cell_area"] = convert_to_SIU_area(
+            prediction["subsidiary_cell_area"]
+        )
+    return predictions

@@ -14,7 +14,6 @@ from app.example_images import (
 )
 from app.image_retrieval import get_selected_image
 from app.summary_statistics import is_valid_calibration
-from interface.upload_single import convert_to_SIU_length, convert_to_SIU_area
 from interface.upload_folder import (
     get_download_csv_button,
     show_save_visualisations_options,
@@ -26,7 +25,7 @@ from inference.population_filtering import (
     Predicted_Pore_Lengths,
     remove_outliers_from_records,
 )
-from inference.utils import get_list_of_images_in_folder
+from inference.utils import get_list_of_images_in_folder, convert_measurements
 from inference.output import create_output_csvs
 from inference.visualisation import maybe_visualise_and_save
 from tools.load import clean_temporary_folder
@@ -49,6 +48,7 @@ def maybe_do_single_image_inference():
                 "name": Option_State["uploaded_file"]["name"],
                 "model_used": Option_State["plant_type"],
                 "predictions": predictions.detections,
+                "invalid_predictions": predictions.invalid_detections,
             }
         st.success(f"Finished in {time_elapsed:2f}s")
 
@@ -227,26 +227,6 @@ def apply_function(function):
 def maybe_convert_length_measurement_units():
     if is_valid_calibration():
         apply_function(convert_measurements)
-
-
-def convert_measurements(predictions):
-    for prediction in predictions:
-        prediction["pore_width"] = convert_to_SIU_length(prediction["pore_width"])
-        prediction["pore_length"] = convert_to_SIU_length(prediction["pore_length"])
-        prediction["pore_area"] = convert_to_SIU_area(prediction["pore_area"])
-        prediction["guard_cell_area"] = convert_to_SIU_area(
-            prediction["guard_cell_area"]
-        )
-        prediction["guard_cell_groove_length"] = convert_to_SIU_length(
-            prediction["guard_cell_groove_length"]
-        )
-        prediction["guard_cell_width"] = convert_to_SIU_length(
-            prediction["guard_cell_width"]
-        )
-        prediction["subsidiary_cell_area"] = convert_to_SIU_area(
-            prediction["subsidiary_cell_area"]
-        )
-    return predictions
 
 
 def load_all_saved_predictions():
