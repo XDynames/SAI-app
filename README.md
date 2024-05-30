@@ -1,7 +1,4 @@
 # StomaAI application
-## About
-
-
 ## Installation (~10 minutes)
 <details>
     <summary> Windows Only Pre-Download Steps </summary>
@@ -65,6 +62,17 @@ Once the operation system specific steps are completed run:
 
 Install the appropriate versions of [Pytorch](https://pytorch.org/get-started/locally/) and [Detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html) to suit your GPU.
 Run `bash setup_gpu.sh` to install the remaining dependencies.
+</details>
+
+<details>
+    <summary>Docker</summary>
+
+If you have [docker](https://docs.docker.com/engine/install/) and [nvidia container runtime](https://developer.nvidia.com/container-runtime) configured you can start SAI by running:
+```
+cd docker 
+docker compose up
+```
+To make your data available to SAI inside the docker container modify the volume mount `../../stomata_data/:/code/data` to suit your needs
 </details>
 
 ## Running SAI
