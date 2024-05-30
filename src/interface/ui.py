@@ -15,7 +15,7 @@ from .example_output import (
 ENABLED_MODES = [
     "Instructions",
     "View Example Images",
-    "View Example Slide Output",
+    "View Example Outputs",
     "Upload An Image",
     "Upload Multiple Images",
 ]
@@ -24,7 +24,7 @@ MODE_METHODS = {
     "Instructions": display_instructions,
     "Upload An Image": display_upload_image,
     "View Example Images": display_example_selection,
-    "View Example Slide Output": display_slide_output_example,
+    "View Example Outputs": display_slide_output_example,
     "View Example Group Output": display_group_output_example,
     "Upload Multiple Images": display_upload_zip,
 }

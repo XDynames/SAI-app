@@ -99,9 +99,7 @@ def async_load_assets(cloud_files):
         for species in cloud_files.keys():
             for image_name in cloud_files[species].keys():
                 image_dict = cloud_files[species][image_name]
-                executor.submit(
-                    download_assets, image_dict, species, image_name
-                )
+                executor.submit(download_assets, image_dict, species, image_name)
 
 
 def main():
@@ -110,22 +108,10 @@ def main():
 
 
 def maybe_create_folders():
-    if not os.path.exists("./assets/"):
-        create_asset_folders()
-    if not os.path.exists("./output/"):
-        create_output_folders()
-
-
-def create_asset_folders():
-    os.mkdir("./assets/")
-    os.mkdir("./assets/arabidopsis/")
-    os.mkdir("./assets/barley/")
-    os.mkdir("./assets/config/")
-
-
-def create_output_folders():
-    os.mkdir("./output/")
-    os.mkdir("./output/temp/")
+    os.makedirs("./assets/arabidopsis/", exist_ok=True)
+    os.makedirs("./assets/barley/", exist_ok=True)
+    os.makedirs("./assets/config/", exist_ok=True)
+    os.makedirs("./output/temp/", exist_ok=True)
 
 
 def clean_temporary_folder():

@@ -10,7 +10,6 @@ def get_predictions():
         predictions = load_predictions()
     else:
         predictions = download_predictions()
-    predictions = predictions["detections"]
     return predictions
 
 
@@ -40,7 +39,7 @@ def get_ground_truth():
         ground_truth = load_ground_truth()
     else:
         ground_truth = download_ground_truth()
-    return ground_truth["detections"]
+    return ground_truth["annotations"]
 
 
 def is_ground_truth_json_local():

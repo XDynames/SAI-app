@@ -74,3 +74,11 @@ def convert_to_SIU_length(pixel_length):
     else:
         length = pixel_length
     return length
+
+
+def convert_to_SIU_area(pixel_area):
+    if Option_State["camera_calibration"] > 0:
+        area = pixel_area / Option_State["camera_calibration"] ** 2
+    else:
+        area = pixel_area
+    return area

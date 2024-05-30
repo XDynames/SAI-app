@@ -1,0 +1,20 @@
+services:
+  sai-app:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    image: sai-app
+    container_name: sai-app
+    volumes:
+      - ../src/assets:/code/src/assets
+      - ../src/output:/code/src/output
+      - ../../stoma_data/:/code/data
+    ports:
+      - 80:8501
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]

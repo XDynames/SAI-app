@@ -1,5 +1,7 @@
 import json
 
+import numpy as np
+
 from tools.state import Option_State
 
 
@@ -12,6 +14,16 @@ def load_json(filepath):
     with open(filepath, "r") as file:
         json_dict = json.load(file)
     return json_dict
+
+
+def np_encoder(object):
+    if isinstance(object, (np.generic, np.ndarray)):
+        return object.item()
+
+
+def write_to_json(record, filepath):
+    with open(filepath, "w") as file:
+        json.dump(record, file, default=np_encoder)
 
 
 # Help functions to check which mode the application is in
@@ -44,7 +56,7 @@ def is_mode_upload_an_example():
 
 
 def is_mode_slide_output_example():
-    return Option_State["mode"] == "View Example Slide Output"
+    return Option_State["mode"] == "View Example Outputs"
 
 
 def is_mode_upload_multiple_images():

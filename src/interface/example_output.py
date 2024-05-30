@@ -15,6 +15,7 @@ def display_group_output_example():
 
 
 def display_slide_output_example():
+    st.write("### Pore Measurement Output")
     message = (
         "Below is an Example of .csv file output for model"
         " predictions on images. In this example, each row"
