@@ -95,6 +95,7 @@ def setup_model_configuration(selected_species):
     cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = (
         BASE_CONFIDENCE_THRESHOLD
     )
+    cfg.SOLVER.AMP.ENABLED = False
     if torch.cuda.is_available():
         cfg.MODEL.DEVICE = "cuda"
     else:
